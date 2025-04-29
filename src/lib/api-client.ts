@@ -1,5 +1,6 @@
 
-import { Reel, User, Comment } from "@/types";
+import { Reel, User, Comment, VideoSourceType } from "@/types";
+import { extractVideoId, generateThumbnailUrl } from "./video-utils";
 
 // Base API URL - in a real app, this would be your actual API endpoint
 const API_BASE_URL = "/api";
@@ -79,19 +80,26 @@ const generateMockReels = (): Reel[] => {
     thumbnailUrl: `https://picsum.photos/500/800?random=${i+1}`,
     isYouTube: i % 3 === 0,
     youtubeId: i % 3 === 0 ? youtubeIds[i % youtubeIds.length] : undefined,
+    sourceType: i % 3 === 0 ? 'youtube' as VideoSourceType : 'upload' as VideoSourceType,
     views: Math.floor(Math.random() * 10000) + 500,
     likes: Math.floor(Math.random() * 1000) + 50,
     comments: Math.floor(Math.random() * 100) + 5,
     createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000).toISOString(),
     tags: ["trending", "funny", "cool", "awesome", "viral"].slice(0, Math.floor(Math.random() * 4) + 1),
-    mood: moods[i % moods.length]
+    mood: moods[i % moods.length],
+    clipStart: 0,
+    clipDuration: 30,
+    isFollowing: i % 4 === 0,
   }));
 };
 
 const mockReels = generateMockReels();
 
-// Favorite reels storage
+// Storage for user data
+let userReels: Reel[] = [];
 let favoriteReels: string[] = [];
+let comments: Comment[] = [];
+let votes: { reelId: string, userId: string, vote: 'up' | 'down' }[] = [];
 
 // API client singleton
 class ApiClient {
@@ -130,19 +138,30 @@ class ApiClient {
   }
   
   // Reels methods
-  async getReels(page = 1, limit = 10): Promise<Reel[]> {
+  async getReels(page = 1, limit = 10, feed: 'for-you' | 'following' = 'for-you'): Promise<Reel[]> {
     await wait(600);
-    return mockReels.slice((page - 1) * limit, page * limit);
+    
+    // Combine mock reels with user-uploaded reels
+    const allReels = [...mockReels, ...userReels];
+    
+    // Filter by feed type
+    const filteredReels = feed === 'following' 
+      ? allReels.filter(reel => reel.isFollowing)
+      : allReels;
+      
+    return filteredReels.slice((page - 1) * limit, page * limit);
   }
   
   async getReelById(id: string): Promise<Reel | undefined> {
     await wait(400);
-    return mockReels.find(reel => reel.id === id);
+    const allReels = [...mockReels, ...userReels];
+    return allReels.find(reel => reel.id === id);
   }
   
   async searchReels(query: string, tags?: string[]): Promise<Reel[]> {
     await wait(700);
-    let filtered = mockReels;
+    const allReels = [...mockReels, ...userReels];
+    let filtered = allReels;
     
     if (query) {
       const lowerQuery = query.toLowerCase();
@@ -186,7 +205,8 @@ class ApiClient {
   // Favorites methods
   async getFavorites(): Promise<Reel[]> {
     await wait(600);
-    return mockReels.filter(reel => favoriteReels.includes(reel.id));
+    const allReels = [...mockReels, ...userReels];
+    return allReels.filter(reel => favoriteReels.includes(reel.id));
   }
   
   async addToFavorites(reelId: string): Promise<{ success: boolean }> {
@@ -213,13 +233,149 @@ class ApiClient {
     return { success: true };
   }
   
+  // User uploads
+  async getMyUploads(): Promise<Reel[]> {
+    await wait(600);
+    return userReels;
+  }
+  
+  async deleteReel(reelId: string): Promise<{ success: boolean }> {
+    await wait(500);
+    const reelIndex = userReels.findIndex(reel => reel.id === reelId);
+    
+    if (reelIndex !== -1) {
+      userReels.splice(reelIndex, 1);
+      // Also remove from favorites if it was favorited
+      favoriteReels = favoriteReels.filter(id => id !== reelId);
+      return { success: true };
+    }
+    
+    throw new Error("Reel not found");
+  }
+  
+  // Comments
+  async getComments(reelId: string): Promise<Comment[]> {
+    await wait(400);
+    return comments.filter(comment => comment.reelId === reelId);
+  }
+  
+  async addComment(reelId: string, text: string): Promise<Comment> {
+    await wait(500);
+    const user = mockUsers[0]; // Current user
+    
+    const newComment: Comment = {
+      id: `comment${Date.now()}`,
+      reelId,
+      userId: user.id,
+      user: {
+        name: user.name,
+        username: user.username,
+        avatar: user.avatar
+      },
+      text,
+      createdAt: new Date().toISOString(),
+      likes: 0
+    };
+    
+    comments.push(newComment);
+    
+    // Update comment count on reel
+    const allReels = [...mockReels, ...userReels];
+    const reelIndex = allReels.findIndex(r => r.id === reelId);
+    
+    if (reelIndex !== -1) {
+      if (reelIndex < mockReels.length) {
+        mockReels[reelIndex].comments += 1;
+      } else {
+        userReels[reelIndex - mockReels.length].comments += 1;
+      }
+    }
+    
+    return newComment;
+  }
+  
+  // Voting
+  async voteOnReel(reelId: string, vote: 'up' | 'down'): Promise<{ success: boolean }> {
+    await wait(300);
+    const userId = mockUsers[0].id;
+    
+    // Remove any existing vote by this user on this reel
+    votes = votes.filter(v => !(v.reelId === reelId && v.userId === userId));
+    
+    // Add the new vote
+    votes.push({ reelId, userId, vote });
+    
+    // Update like count on reel
+    const allReels = [...mockReels, ...userReels];
+    const reelIndex = allReels.findIndex(r => r.id === reelId);
+    
+    if (reelIndex !== -1) {
+      if (vote === 'up') {
+        if (reelIndex < mockReels.length) {
+          mockReels[reelIndex].likes += 1;
+        } else {
+          userReels[reelIndex - mockReels.length].likes += 1;
+        }
+      }
+    }
+    
+    return { success: true };
+  }
+  
   // Upload methods
-  async uploadVideo(file: File | string, metadata: {title: string, description: string, tags: string[]}): Promise<Reel> {
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 10) {
-      await wait(200);
-      // In a real implementation, you would emit progress events
-      console.log(`Upload progress: ${i}%`);
+  async uploadVideo(
+    file: File | string, 
+    metadata: {
+      title: string, 
+      description: string, 
+      tags: string[],
+      sourceType: VideoSourceType,
+      clipStart?: number,
+      clipDuration?: number
+    }
+  ): Promise<Reel> {
+    // Generate proper metadata based on source type
+    let videoUrl = '';
+    let thumbnailUrl = '';
+    let isYouTube = false;
+    let youtubeId: string | undefined;
+    let sourceType: VideoSourceType = metadata.sourceType || 'upload';
+    
+    if (typeof file === 'string') {
+      // Handle external links
+      if (file.includes('youtube.com') || file.includes('youtu.be')) {
+        sourceType = 'youtube';
+        youtubeId = extractVideoId(file, sourceType);
+        if (youtubeId) {
+          videoUrl = `https://www.youtube.com/embed/${youtubeId}`;
+          thumbnailUrl = generateThumbnailUrl(youtubeId, sourceType);
+          isYouTube = true;
+        }
+      } else if (file.includes('twitch.tv')) {
+        sourceType = 'twitch';
+        const clipId = extractVideoId(file, sourceType);
+        if (clipId) {
+          videoUrl = `https://player.twitch.tv/?video=${clipId}&parent=${window.location.hostname}`;
+          thumbnailUrl = `https://picsum.photos/seed/${clipId}/640/360`; // Mock
+        }
+      } else if (file.includes('vimeo.com')) {
+        sourceType = 'vimeo';
+        const videoId = extractVideoId(file, sourceType);
+        if (videoId) {
+          videoUrl = `https://player.vimeo.com/video/${videoId}`;
+          thumbnailUrl = `https://picsum.photos/seed/${videoId}/640/360`; // Mock
+        }
+      } else {
+        // Generic external link
+        sourceType = 'other';
+        videoUrl = file;
+        thumbnailUrl = `https://picsum.photos/640/360?random=${Date.now()}`;
+      }
+    } else if (file instanceof File) {
+      // Handle file upload
+      sourceType = 'upload';
+      videoUrl = URL.createObjectURL(file);
+      thumbnailUrl = `https://picsum.photos/640/360?random=${Date.now()}`;
     }
     
     // Create new reel
@@ -233,31 +389,24 @@ class ApiClient {
         username: mockUsers[0].username,
         avatar: mockUsers[0].avatar
       },
-      videoUrl: typeof file === 'string' && file.includes('youtube.com') 
-        ? file 
-        : URL.createObjectURL(file instanceof File ? file : new Blob()),
-      thumbnailUrl: `https://picsum.photos/500/800?random=${Date.now()}`,
-      isYouTube: typeof file === 'string' && file.includes('youtube.com'),
-      youtubeId: typeof file === 'string' && file.includes('youtube.com') 
-        ? file.split('v=')[1]?.split('&')[0] 
-        : undefined,
+      videoUrl,
+      thumbnailUrl,
+      isYouTube,
+      youtubeId,
+      sourceType,
       views: 0,
       likes: 0,
       comments: 0,
       createdAt: new Date().toISOString(),
       tags: metadata.tags,
-      mood: "neutral"
+      mood: "neutral",
+      clipStart: metadata.clipStart || 0,
+      clipDuration: metadata.clipDuration || 30,
+      isFollowing: false
     };
     
-    mockReels.unshift(newReel);
+    userReels.unshift(newReel);
     return newReel;
-  }
-  
-  // Helper methods
-  extractYouTubeId(url: string): string | null {
-    const regExp = /^.*(youtu.be\/|v\/|e\/|u\/\w+\/|embed\/|v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
   }
 }
 

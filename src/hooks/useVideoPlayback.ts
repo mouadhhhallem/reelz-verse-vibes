@@ -6,6 +6,8 @@ export const useVideoPlayback = (threshold = 0.7) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const currentVideo = videoRef.current;
@@ -40,6 +42,19 @@ export const useVideoPlayback = (threshold = 0.7) => {
 
     observer.observe(currentContainer);
 
+    // Set up progress tracking for video elements
+    if (currentVideo.tagName === 'VIDEO') {
+      const videoElement = currentVideo as HTMLVideoElement;
+      
+      const updateProgress = () => {
+        if (videoElement.duration) {
+          setProgress((videoElement.currentTime / videoElement.duration) * 100);
+        }
+      };
+      
+      videoElement.addEventListener('timeupdate', updateProgress);
+    }
+
     return () => {
       if (currentContainer) {
         observer.unobserve(currentContainer);
@@ -47,6 +62,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
       if (currentVideo?.tagName === 'VIDEO') {
         const videoElement = currentVideo as HTMLVideoElement;
         videoElement.pause();
+        videoElement.removeEventListener('timeupdate', () => {});
       }
     };
   }, [threshold]);
@@ -69,11 +85,41 @@ export const useVideoPlayback = (threshold = 0.7) => {
     }
   };
 
+  const toggleMute = () => {
+    const currentVideo = videoRef.current;
+    
+    if (!currentVideo || currentVideo.tagName !== 'VIDEO') return;
+    
+    const videoElement = currentVideo as HTMLVideoElement;
+    
+    if (videoElement.muted) {
+      videoElement.muted = false;
+      setIsMuted(false);
+    } else {
+      videoElement.muted = true;
+      setIsMuted(true);
+    }
+  };
+
+  const seekTo = (percentage: number) => {
+    const currentVideo = videoRef.current;
+    
+    if (!currentVideo || currentVideo.tagName !== 'VIDEO') return;
+    
+    const videoElement = currentVideo as HTMLVideoElement;
+    const targetTime = (percentage / 100) * videoElement.duration;
+    videoElement.currentTime = targetTime;
+  };
+
   return {
     videoRef,
     containerRef,
     isVisible,
     isPlaying,
+    isMuted,
+    progress,
     togglePlayback,
+    toggleMute,
+    seekTo
   };
 };

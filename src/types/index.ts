@@ -14,6 +14,8 @@ export interface User {
   }
 }
 
+export type VideoSourceType = 'youtube' | 'twitch' | 'vimeo' | 'tiktok' | 'upload' | 'other';
+
 export interface Reel {
   id: string;
   title: string;
@@ -28,12 +30,16 @@ export interface Reel {
   thumbnailUrl: string;
   isYouTube: boolean;
   youtubeId?: string;
+  sourceType: VideoSourceType;
   views: number;
   likes: number;
   comments: number;
   createdAt: string;
   tags: string[];
   mood?: "energetic" | "calm" | "happy" | "sad" | "neutral";
+  clipStart?: number;
+  clipDuration?: number;
+  isFollowing?: boolean;
 }
 
 export interface Comment {
