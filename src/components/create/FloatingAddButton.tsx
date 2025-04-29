@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Video, ExternalLink, Twitch, Tv2 } from 'lucide-react';
@@ -81,7 +80,6 @@ export const FloatingAddButton = () => {
           onClick={() => setIsOpen(!isOpen)}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
-          {/* Animated background */}
           <motion.div 
             className="absolute inset-0 bg-gradient-to-br from-reelz-purple to-reelz-teal opacity-70"
             animate={{ 
