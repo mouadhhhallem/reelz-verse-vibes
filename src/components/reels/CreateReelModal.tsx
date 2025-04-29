@@ -24,7 +24,7 @@ import { extractVideoId } from '@/lib/video-utils';
 interface CreateReelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'youtube' | 'upload';
+  initialTab?: 'youtube' | 'upload' | 'twitch' | 'vimeo';
 }
 
 export const CreateReelModal: React.FC<CreateReelModalProps> = ({ 
@@ -55,6 +55,11 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
     }
     if (isOpen && initialTab) {
       setActiveTab(initialTab);
+      
+      // Set appropriate sourceType based on initialTab
+      if (initialTab === 'youtube') setSourceType('youtube');
+      if (initialTab === 'twitch') setSourceType('twitch');
+      if (initialTab === 'vimeo') setSourceType('vimeo');
     }
   }, [isOpen, initialTab]);
   
@@ -271,7 +276,7 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
-          <Tabs defaultValue={activeTab} value={activeTab} onValueChange={tab => setActiveTab(tab as 'youtube' | 'upload')}>
+          <Tabs defaultValue={activeTab} value={activeTab} onValueChange={tab => setActiveTab(tab as 'youtube' | 'upload' | 'twitch' | 'vimeo')}>
             <TabsList className="grid grid-cols-2 mb-4">
               <TabsTrigger value="youtube" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Link size={16} className="mr-2" /> Add Link
