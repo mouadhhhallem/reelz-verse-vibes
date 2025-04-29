@@ -1,17 +1,17 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Home, Search, Heart, Trophy, User, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useViewMode } from '@/contexts/ViewModeContext';
 import { Switch } from '@/components/ui/switch';
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
 
 export const SideNavigation: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const { viewMode, toggleViewMode } = useViewMode();
+  const location = useLocation();
 
   const navItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -69,32 +69,37 @@ export const SideNavigation: React.FC = () => {
 
       {/* Navigation Items */}
       <nav className="flex-1 space-y-1">
-        {navItems.map((item) => (
-          <motion.div key={item.path} variants={itemVariants}>
-            <NavLink
-              to={item.path}
-              className={({ isActive }) => cn(
-                "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all",
-                isActive 
-                  ? "bg-primary/10 text-primary" 
-                  : "hover:bg-white/5 text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <item.icon size={20} />
-              <span>{item.label}</span>
-              {isActive && (
-                <motion.div
-                  className="absolute left-0 w-1 h-8 bg-gradient-to-b from-primary to-secondary rounded-r-full"
-                  layoutId="activeNavIndicator"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-            </NavLink>
-          </motion.div>
-        ))}
+        {navItems.map((item) => {
+          // Check if this nav item is active
+          const isActive = location.pathname === item.path;
+          
+          return (
+            <motion.div key={item.path} variants={itemVariants}>
+              <NavLink
+                to={item.path}
+                className={({ isActive }) => cn(
+                  "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all",
+                  isActive 
+                    ? "bg-primary/10 text-primary" 
+                    : "hover:bg-white/5 text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <item.icon size={20} />
+                <span>{item.label}</span>
+                {isActive && (
+                  <motion.div
+                    className="absolute left-0 w-1 h-8 bg-gradient-to-b from-primary to-secondary rounded-r-full"
+                    layoutId="activeNavIndicator"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+              </NavLink>
+            </motion.div>
+          );
+        })}
       </nav>
 
       {/* View Mode Toggle */}

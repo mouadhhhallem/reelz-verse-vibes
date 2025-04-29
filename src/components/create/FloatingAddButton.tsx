@@ -7,9 +7,9 @@ import { CreateReelModal } from '@/components/reels/CreateReelModal';
 export const FloatingAddButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<'youtube' | 'upload' | 'twitch' | 'vimeo'>('youtube');
+  const [modalType, setModalType] = useState<'youtube' | 'upload'>('youtube');
 
-  const handleOpenModal = (type: 'youtube' | 'upload' | 'twitch' | 'vimeo') => {
+  const handleOpenModal = (type: 'youtube' | 'upload') => {
     setModalType(type);
     setIsModalOpen(true);
     setIsOpen(false);
@@ -52,7 +52,7 @@ export const FloatingAddButton = () => {
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
                 whileHover={{ scale: 1.05, x: -5 }}
-                onClick={() => handleOpenModal('twitch')}
+                onClick={() => handleOpenModal('upload')}
               >
                 <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-full p-2">
                   <Twitch size={20} className="text-white" />
@@ -63,7 +63,7 @@ export const FloatingAddButton = () => {
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
                 whileHover={{ scale: 1.05, x: -5 }}
-                onClick={() => handleOpenModal('vimeo')}
+                onClick={() => handleOpenModal('upload')}
               >
                 <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-full p-2">
                   <Tv2 size={20} className="text-white" />
