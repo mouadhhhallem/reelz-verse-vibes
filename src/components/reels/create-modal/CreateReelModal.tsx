@@ -33,7 +33,8 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [mood, setMood] = useState<"energetic" | "calm" | "happy" | "sad">("energetic");
+  // Update the type here to match what's in ReelForm
+  const [mood, setMood] = useState<"energetic" | "calm" | "happy" | "sad" | "neutral">("energetic");
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ModalTab);
