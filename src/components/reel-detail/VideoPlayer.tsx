@@ -1,14 +1,17 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useVideoPlayback } from '@/hooks/useVideoPlayback';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, Volume2, VolumeX, Loader } from 'lucide-react';
+import { formatDuration } from '@/lib/video-utils';
 
 interface VideoPlayerProps {
   videoUrl: string;
   thumbnailUrl: string;
   isYouTube: boolean;
   youtubeId?: string;
+  nextVideoUrl?: string;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -16,6 +19,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   thumbnailUrl,
   isYouTube,
   youtubeId,
+  nextVideoUrl,
 }) => {
   const { 
     videoRef, 
@@ -24,15 +28,61 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     togglePlayback, 
     isMuted, 
     toggleMute, 
-    progress, 
-    seekTo 
+    progress,
+    isBuffering,
+    volume,
+    duration,
+    currentTime,
+    seekTo,
+    changeVolume,
+    preloadNextVideo
   } = useVideoPlayback(0.3);
+
+  const [showControls, setShowControls] = useState(true);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
+  // Preload next video when component mounts
+  React.useEffect(() => {
+    if (nextVideoUrl) {
+      preloadNextVideo(nextVideoUrl);
+    }
+  }, [nextVideoUrl, preloadNextVideo]);
+
+  // Hide controls after 3 seconds of inactivity
+  React.useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    
+    const handleMouseMove = () => {
+      setShowControls(true);
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (isPlaying) {
+          setShowControls(false);
+        }
+      }, 3000);
+    };
+    
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('mousemove', handleMouseMove);
+      container.addEventListener('touchstart', handleMouseMove, { passive: true });
+    }
+    
+    return () => {
+      clearTimeout(timeout);
+      if (container) {
+        container.removeEventListener('mousemove', handleMouseMove);
+        container.removeEventListener('touchstart', handleMouseMove);
+      }
+    };
+  }, [isPlaying]);
 
   return (
     <div 
       ref={containerRef}
       className="relative h-full w-full overflow-hidden"
       onClick={!isYouTube ? togglePlayback : undefined}
+      onMouseEnter={() => setShowControls(true)}
     >
       {isYouTube ? (
         <iframe
@@ -51,6 +101,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           controls={false}
           loop
           playsInline
+          preload="auto"
           className="w-full h-full object-cover"
         ></video>
       )}
@@ -58,12 +109,61 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Video Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 pointer-events-none"></div>
       
+      {/* Buffering Indicator */}
+      <AnimatePresence>
+        {isBuffering && (
+          <motion.div 
+            className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              animate={{ 
+                rotate: 360,
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ 
+                rotate: { duration: 1.5, ease: "linear", repeat: Infinity },
+                scale: { duration: 1, repeat: Infinity }
+              }}
+            >
+              <Loader size={48} className="text-primary" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Play/Pause Overlay */}
+      <AnimatePresence>
+        {!isPlaying && !isYouTube && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute inset-0 flex items-center justify-center"
+          >
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-xl"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlayback();
+              }}
+            >
+              <Play size={32} className="text-white" fill="white" />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Video Progress Bar */}
       <motion.div 
-        className="absolute bottom-0 left-0 right-0 h-1 bg-white/20"
-        initial={{ scaleX: 0 }}
-        animate={{ scaleX: progress / 100 }}
-        style={{ transformOrigin: "left" }}
+        className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 cursor-pointer"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showControls ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
         onClick={(e) => {
           e.stopPropagation();
           const rect = e.currentTarget.getBoundingClientRect();
@@ -71,33 +171,103 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           seekTo(percent);
         }}
       >
-        <div className="h-full bg-primary"></div>
+        <motion.div 
+          className="h-full bg-gradient-to-r from-primary to-secondary"
+          style={{ width: `${progress}%` }}
+        />
+        
+        <motion.div 
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-md border-2 border-primary"
+          style={{ left: `${progress}%`, transform: 'translateX(-50%) translateY(-50%)' }}
+          animate={{ scale: showControls ? 1 : 0 }}
+          transition={{ duration: 0.2 }}
+        />
+      </motion.div>
+      
+      {/* Time Display */}
+      <motion.div 
+        className="absolute bottom-4 left-4 text-xs text-white bg-black/40 backdrop-blur-sm px-2 py-1 rounded"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showControls ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {formatDuration(currentTime)} / {formatDuration(duration)}
       </motion.div>
       
       {!isYouTube && (
-        <div className="absolute bottom-4 right-4 z-20">
-          <Button 
-            size="icon" 
-            variant="glass"
-            className="rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleMute();
-            }}
+        <div className="absolute bottom-4 right-4 z-20 flex items-center space-x-2">
+          {/* Volume Control */}
+          <motion.div 
+            className="relative"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showControls ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+            onMouseEnter={() => setShowVolumeSlider(true)}
+            onMouseLeave={() => setShowVolumeSlider(false)}
           >
-            {isMuted ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                <line x1="23" y1="9" x2="17" y2="15"></line>
-                <line x1="17" y1="9" x2="23" y2="15"></line>
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-              </svg>
-            )}
-          </Button>
+            <AnimatePresence>
+              {showVolumeSlider && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0, x: 20 }}
+                  animate={{ opacity: 1, width: 80, x: 0 }}
+                  exit={{ opacity: 0, width: 0, x: 20 }}
+                  className="absolute right-full mr-2 top-1/2 -translate-y-1/2 h-8 bg-black/60 backdrop-blur-md rounded-full px-3 flex items-center"
+                >
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={volume}
+                    onChange={(e) => changeVolume(parseFloat(e.target.value))}
+                    className="w-full h-1 appearance-none bg-white/30 rounded-full outline-none"
+                    style={{
+                      background: `linear-gradient(to right, hsl(var(--primary)) ${volume * 100}%, white 0%)`,
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <Button 
+              size="icon" 
+              variant="glass"
+              className="rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleMute();
+              }}
+            >
+              {isMuted ? (
+                <VolumeX size={18} className="text-white" />
+              ) : (
+                <Volume2 size={18} className="text-white" />
+              )}
+            </Button>
+          </motion.div>
+          
+          {/* Play/Pause Button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showControls ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Button 
+              size="icon" 
+              variant="glass"
+              className="rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                togglePlayback();
+              }}
+            >
+              {isPlaying ? (
+                <Pause size={18} className="text-white" />
+              ) : (
+                <Play size={18} className="text-white" />
+              )}
+            </Button>
+          </motion.div>
         </div>
       )}
     </div>

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ViewModeProvider } from "./contexts/ViewModeContext";
 import { BatchSelectionProvider } from "./contexts/BatchSelectionContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
 import { Layout } from "./components/layout/Layout";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
@@ -32,32 +33,34 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ViewModeProvider>
-        <BatchSelectionProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Layout />}>
-                  <Route index element={<Home />} />
-                  <Route path="search" element={<Search />} />
-                  <Route path="reel/:id" element={<ReelDetail />} />
-                  <Route path="profile" element={<Profile />} />
-                  <Route path="profile/:username" element={<Profile />} />
-                  <Route path="favorites" element={<Favorites />} />
-                  <Route path="login" element={<Login />} />
-                  <Route path="leaderboard" element={<Leaderboard />} />
-                  <Route path="settings" element={<Settings />} />
-                </Route>
-                <Route path="legal" element={<Legal />} />
-                <Route path="legal/:section" element={<Legal />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </BatchSelectionProvider>
-      </ViewModeProvider>
+      <NotificationProvider>
+        <ViewModeProvider>
+          <BatchSelectionProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="search" element={<Search />} />
+                    <Route path="reel/:id" element={<ReelDetail />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="profile/:username" element={<Profile />} />
+                    <Route path="favorites" element={<Favorites />} />
+                    <Route path="login" element={<Login />} />
+                    <Route path="leaderboard" element={<Leaderboard />} />
+                    <Route path="settings" element={<Settings />} />
+                  </Route>
+                  <Route path="legal" element={<Legal />} />
+                  <Route path="legal/:section" element={<Legal />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </BatchSelectionProvider>
+        </ViewModeProvider>
+      </NotificationProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

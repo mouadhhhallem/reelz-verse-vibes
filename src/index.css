@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -220,4 +219,42 @@
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
+}
+
+/* In the animation section, add these new animations */
+@keyframes theme-transition {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(2);
+  }
+}
+
+/* Add these new utilities at the bottom of the file */
+.theme-transition-circle {
+  @apply fixed w-[150vmax] h-[150vmax] rounded-full pointer-events-none z-[9999] transition-transform;
+  transform: scale(0);
+  transform-origin: center;
+}
+
+.theme-transition-light {
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(247,250,252,0.95) 100%);
+}
+
+.theme-transition-dark {
+  background: radial-gradient(circle, rgba(16,16,24,0.95) 0%, rgba(10,10,15,0.95) 100%);
+}
+
+/* Add a new animation for stars in the dark theme */
+.star-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  pointer-events: none;
 }

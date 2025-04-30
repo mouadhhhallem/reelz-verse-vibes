@@ -1,16 +1,31 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Bell, Settings } from 'lucide-react';
+import { Search, Settings, Moon, Sun } from 'lucide-react';
 import { useViewMode } from '@/contexts/ViewModeContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 
 export const TopNavigation: React.FC = () => {
   const { viewMode, toggleViewMode } = useViewMode();
   const { user, isAuthenticated } = useAuth();
+  const { 
+    notifications, 
+    markAsRead, 
+    markAllAsRead, 
+    clearAll 
+  } = useNotifications();
+  
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+    document.documentElement.classList.toggle('light');
+  };
 
   return (
     <motion.div 
@@ -37,6 +52,25 @@ export const TopNavigation: React.FC = () => {
             />
             <span className="text-sm ml-1 text-muted-foreground">{viewMode === 'bubble' ? 'Bubble' : 'Classic'}</span>
           </div>
+          
+          {/* Theme toggle */}
+          <div className="hidden md:flex items-center ml-4 space-x-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="rounded-full hover:bg-white/10"
+              onClick={toggleTheme}
+            >
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: theme === 'dark' ? 360 : 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+              </motion.div>
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -53,24 +87,26 @@ export const TopNavigation: React.FC = () => {
 
           {isAuthenticated && (
             <>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="rounded-full hover:bg-white/10 relative"
-              >
-                <Bell size={20} />
-                <span className="sr-only">Notifications</span>
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
-              </Button>
+              {/* Notification Center */}
+              <NotificationCenter 
+                notifications={notifications}
+                onMarkAsRead={markAsRead}
+                onMarkAllAsRead={markAllAsRead}
+                onClearAll={clearAll}
+              />
               
               <Link to="/profile">
-                <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/50 hover:border-primary transition-all duration-300">
+                <motion.div 
+                  className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/50 hover:border-primary transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <img 
                     src={user?.avatar || "https://i.pravatar.cc/100"} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
-                </div>
+                </motion.div>
               </Link>
             </>
           )}

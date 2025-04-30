@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
@@ -130,7 +129,7 @@ const Settings = () => {
             <CardContent className="p-3">
               <div className="flex flex-col h-auto bg-transparent space-y-1">
                 <Button 
-                  variant={activeTab === 'account' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'account' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('account')}
                 >
@@ -139,7 +138,7 @@ const Settings = () => {
                 </Button>
                 
                 <Button 
-                  variant={activeTab === 'appearance' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'appearance' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('appearance')}
                 >
@@ -148,7 +147,7 @@ const Settings = () => {
                 </Button>
                 
                 <Button 
-                  variant={activeTab === 'notifications' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'notifications' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('notifications')}
                 >
@@ -157,7 +156,7 @@ const Settings = () => {
                 </Button>
                 
                 <Button 
-                  variant={activeTab === 'security' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'security' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('security')}
                 >
@@ -166,7 +165,7 @@ const Settings = () => {
                 </Button>
                 
                 <Button 
-                  variant={activeTab === 'language' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'language' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('language')}
                 >
@@ -175,7 +174,7 @@ const Settings = () => {
                 </Button>
                 
                 <Button 
-                  variant={activeTab === 'privacy' ? 'subtle' : 'ghost'}
+                  variant={activeTab === 'privacy' ? 'ghost' : 'ghost'}
                   className="w-full justify-start gap-2"
                   onClick={() => setActiveTab('privacy')}
                 >
