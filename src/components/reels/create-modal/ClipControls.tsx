@@ -1,52 +1,77 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { Label } from '@/components/ui/label';
+import { extractVideoId } from '@/lib/video-utils';
 
-interface ClipControlsProps {
-  clipStart: string;
-  clipDuration: string;
-  onStartChange: (value: string) => void;
-  onDurationChange: (value: string) => void;
+export interface ClipControlsProps {
+  url: string;
+  type: string;
 }
 
-export const ClipControls: React.FC<ClipControlsProps> = ({
-  clipStart,
-  clipDuration,
-  onStartChange,
-  onDurationChange,
-}) => {
+export const ClipControls: React.FC<ClipControlsProps> = ({ url, type }) => {
+  const [startTime, setStartTime] = useState(0);
+  const [duration, setDuration] = useState(30);
+  const MAX_DURATION = 60;
+
+  const videoId = extractVideoId(url, type as any);
+
+  if (!videoId) return null;
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div>
-        <p className="text-xs text-muted-foreground mb-1">Start time (seconds)</p>
-        <div className="flex items-center">
-          <Clock size={16} className="mr-2 text-muted-foreground" />
-          <Input 
-            type="number" 
-            value={clipStart}
-            min="0"
-            onChange={e => onStartChange(e.target.value)}
-            className="h-8"
+    <div className="space-y-4 p-4 bg-white/5 backdrop-blur-sm rounded-lg">
+      <div className="aspect-[16/9] w-full bg-black rounded-lg overflow-hidden">
+        {type === 'youtube' && (
+          <iframe 
+            src={`https://www.youtube.com/embed/${videoId}?start=${startTime}`}
+            className="w-full h-full"
+            allowFullScreen
           />
-        </div>
+        )}
+        {type === 'vimeo' && (
+          <iframe 
+            src={`https://player.vimeo.com/video/${videoId}`}
+            className="w-full h-full"
+            allowFullScreen
+          />
+        )}
+        {type === 'twitch' && (
+          <iframe 
+            src={`https://clips.twitch.tv/embed?clip=${videoId}&parent=${window.location.hostname}`}
+            className="w-full h-full"
+            allowFullScreen
+          />
+        )}
       </div>
-      <div>
-        <p className="text-xs text-muted-foreground mb-1">Duration (seconds)</p>
-        <div className="flex items-center">
-          <Clock size={16} className="mr-2 text-muted-foreground" />
-          <Input 
-            type="number" 
-            value={clipDuration}
-            min="1"
-            max="60"
-            onChange={e => onDurationChange(e.target.value)}
-            className="h-8"
+
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <Label>Start Time (seconds)</Label>
+            <span className="text-sm text-muted-foreground">{startTime}s</span>
+          </div>
+          <Slider 
+            value={[startTime]} 
+            onValueChange={(values) => setStartTime(values[0])}
+            min={0}
+            max={300}
+            step={1}
           />
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          Max 60 seconds (fair use)
-        </p>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <Label>Clip Duration (seconds)</Label>
+            <span className="text-sm text-muted-foreground">{duration}s</span>
+          </div>
+          <Slider 
+            value={[duration]} 
+            onValueChange={(values) => setDuration(values[0])}
+            min={5}
+            max={MAX_DURATION}
+            step={1}
+          />
+        </div>
       </div>
     </div>
   );

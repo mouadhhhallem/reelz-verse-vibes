@@ -1,40 +1,85 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Upload } from 'lucide-react';
+import { Upload, X, FileUp } from 'lucide-react';
 
-interface FileUploadAreaProps {
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+export interface FileUploadAreaProps {
+  file: File | null;
+  onChange: (file: File | null) => void;
 }
 
-export const FileUploadArea: React.FC<FileUploadAreaProps> = ({ onFileChange }) => {
+export const FileUploadArea: React.FC<FileUploadAreaProps> = ({ file, onChange }) => {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      onChange(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      onChange(e.target.files[0]);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    onChange(null);
+  };
+
   return (
-    <motion.div 
-      className="border-2 border-dashed rounded-md overflow-hidden cursor-pointer hover:bg-muted/50 transition-colors"
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
+    <div 
+      className={`w-full h-48 border-2 border-dashed rounded-lg overflow-hidden ${
+        isDragging ? 'border-primary bg-primary/10' : 'border-gray-400 bg-white/5'
+      } relative transition-colors duration-200 flex flex-col justify-center items-center`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
-      <input
-        type="file"
-        id="videoUpload"
-        className="hidden"
-        accept="video/*"
-        onChange={onFileChange}
-      />
-      <label htmlFor="videoUpload" className="cursor-pointer flex flex-col items-center py-10">
+      {file ? (
+        <div className="w-full h-full flex flex-col items-center justify-center relative">
+          <p className="text-sm text-muted-foreground">{file.name}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {(file.size / (1024 * 1024)).toFixed(2)} MB
+          </p>
+          <button 
+            className="absolute top-2 right-2 rounded-full bg-black/40 backdrop-blur-sm p-1 text-white"
+            onClick={handleRemoveFile}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      ) : (
         <motion.div 
-          className="bg-primary/10 p-4 rounded-full mb-3"
-          animate={{ scale: [1, 1.1, 1], opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          className="flex flex-col items-center justify-center w-full h-full cursor-pointer"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <Upload size={40} className="text-primary mb-2" />
+          <input 
+            type="file" 
+            accept="video/*" 
+            className="absolute inset-0 opacity-0 cursor-pointer" 
+            onChange={handleFileInput}
+          />
+          <FileUp size={32} className="text-muted-foreground mb-2" />
+          <p className="text-sm font-medium">Drop your video here or click to browse</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            MP4, WebM, or MOV (max. 100MB)
+          </p>
         </motion.div>
-        <p className="font-medium text-lg">Click to upload</p>
-        <p className="text-sm text-muted-foreground mt-1">MP4, WebM or MOV (max. 50MB)</p>
-        <p className="text-xs text-muted-foreground mt-3">
-          Only upload content you own or have rights to use
-        </p>
-      </label>
-    </motion.div>
+      )}
+    </div>
   );
 };
