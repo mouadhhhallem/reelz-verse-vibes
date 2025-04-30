@@ -1,12 +1,15 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Video, ExternalLink, Twitch, Tv2 } from 'lucide-react';
 import { CreateReelModal } from '@/components/reels/CreateReelModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const FloatingAddButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'youtube' | 'upload' | 'twitch' | 'vimeo'>('youtube');
+  const { user } = useAuth();
 
   const handleOpenModal = (type: 'youtube' | 'upload' | 'twitch' | 'vimeo') => {
     setModalType(type);
@@ -14,9 +17,12 @@ export const FloatingAddButton = () => {
     setIsOpen(false);
   };
 
+  // Only show upload button for authenticated users
+  if (!user) return null;
+
   return (
     <>
-      <div className="fixed right-6 bottom-20 z-40 hidden md:block">
+      <div className="fixed right-6 bottom-20 z-40">
         <AnimatePresence>
           {isOpen && (
             <motion.div 
@@ -28,7 +34,7 @@ export const FloatingAddButton = () => {
             >
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
-                whileHover={{ scale: 1.05, x: -5 }}
+                whileHover={{ scale: 1.05, x: -5, boxShadow: "0 8px 20px rgba(124, 58, 237, 0.3)" }}
                 onClick={() => handleOpenModal('upload')}
               >
                 <div className="bg-gradient-to-br from-reelz-purple to-reelz-purple-dark rounded-full p-2">
@@ -39,7 +45,7 @@ export const FloatingAddButton = () => {
               
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
-                whileHover={{ scale: 1.05, x: -5 }}
+                whileHover={{ scale: 1.05, x: -5, boxShadow: "0 8px 20px rgba(255, 0, 0, 0.2)" }}
                 onClick={() => handleOpenModal('youtube')}
               >
                 <div className="bg-gradient-to-br from-red-500 to-red-700 rounded-full p-2">
@@ -50,7 +56,7 @@ export const FloatingAddButton = () => {
 
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
-                whileHover={{ scale: 1.05, x: -5 }}
+                whileHover={{ scale: 1.05, x: -5, boxShadow: "0 8px 20px rgba(145, 70, 255, 0.2)" }}
                 onClick={() => handleOpenModal('twitch')}
               >
                 <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-full p-2">
@@ -61,7 +67,7 @@ export const FloatingAddButton = () => {
 
               <motion.div
                 className="flex items-center backdrop-blur-xl bg-white/10 border border-white/20 rounded-full pr-4 pl-2 py-2 shadow-xl"
-                whileHover={{ scale: 1.05, x: -5 }}
+                whileHover={{ scale: 1.05, x: -5, boxShadow: "0 8px 20px rgba(14, 165, 233, 0.2)" }}
                 onClick={() => handleOpenModal('vimeo')}
               >
                 <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-full p-2">
@@ -74,7 +80,7 @@ export const FloatingAddButton = () => {
         </AnimatePresence>
         
         <motion.button
-          className="relative bg-gradient-to-r from-primary to-secondary rounded-full w-14 h-14 flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden"
+          className="relative bg-gradient-to-r from-primary to-secondary rounded-full w-16 h-16 flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden"
           whileHover={{ scale: 1.1, boxShadow: "0 8px 30px rgba(124, 58, 237, 0.4)" }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setIsOpen(!isOpen)}
@@ -99,7 +105,7 @@ export const FloatingAddButton = () => {
             animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Plus className="text-white" size={28} />
+            <Plus className="text-white" size={32} />
           </motion.div>
         </motion.button>
       </div>

@@ -11,6 +11,11 @@ import { VideoPreview } from "./VideoPreview";
 import { ClipControls } from "./ClipControls";
 import { ReelForm } from "./ReelForm";
 import { UploadProgress } from "./UploadProgress";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from 'sonner';
+import { useQueryClient } from "@tanstack/react-query";
+import { generateVideoThumbnail } from "@/lib/video-utils";
+import { useNavigate } from "react-router-dom";
 
 export type ModalTab = "upload" | "youtube" | "twitch" | "vimeo";
 
@@ -33,8 +38,11 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
   const [tags, setTags] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  // Update the type here to match what's in ReelForm
   const [mood, setMood] = useState<"energetic" | "calm" | "happy" | "sad" | "neutral">("energetic");
+  
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ModalTab);
@@ -51,37 +59,116 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
     setVideoUrl(url);
   };
 
+  const resetForm = () => {
+    setVideoFile(null);
+    setVideoUrl("");
+    setTags([]);
+    setTitle("");
+    setDescription("");
+    setMood("energetic");
+    setUploadProgress(0);
+    setIsUploading(false);
+  };
+
   const handleSubmit = async () => {
     if (!videoFile && !videoUrl) return;
+    if (!user) {
+      toast.error("You must be logged in to upload videos");
+      return;
+    }
 
     setIsUploading(true);
     
-    // Simulate upload progress
+    // Simulate upload progress with smoother animation
     const interval = setInterval(() => {
       setUploadProgress((prev) => {
-        if (prev >= 100) {
+        const increment = Math.random() * 15 + 5; // Random increment between 5-20%
+        const newProgress = prev + increment;
+        
+        if (newProgress >= 95) {
           clearInterval(interval);
-          return 100;
+          return 95; // Hold at 95% until processing completes
         }
-        return prev + 5;
+        return newProgress;
       });
-    }, 200);
+    }, 300);
 
-    // Simulate upload completion
-    setTimeout(() => {
-      clearInterval(interval);
-      setUploadProgress(100);
-      setIsUploading(false);
-      onClose();
+    try {
+      // Generate a thumbnail if it's a file upload
+      let thumbnailUrl = "";
+      let videoSrc = "";
       
-      // Reset form
-      setVideoFile(null);
-      setVideoUrl("");
-      setTags([]);
-      setTitle("");
-      setDescription("");
-      setMood("energetic");
-    }, 4000);
+      if (videoFile) {
+        thumbnailUrl = await generateVideoThumbnail(videoFile);
+        videoSrc = URL.createObjectURL(videoFile);
+      } else if (videoUrl) {
+        // For YouTube links, we can get the thumbnail directly
+        if (activeTab === 'youtube') {
+          const videoId = new URL(videoUrl).searchParams.get('v');
+          if (videoId) {
+            thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            videoSrc = videoUrl;
+          }
+        } else {
+          // For other platforms, use a generic thumbnail
+          thumbnailUrl = '/placeholder.svg';
+          videoSrc = videoUrl;
+        }
+      }
+
+      // Create new reel object
+      const newReel = {
+        id: `reel-${Date.now()}`,
+        title: title || `My Reel ${new Date().toLocaleDateString()}`,
+        description: description || "Check out my latest reel!",
+        videoUrl: videoSrc,
+        thumbnailUrl,
+        isYouTube: activeTab === 'youtube',
+        youtubeId: activeTab === 'youtube' ? new URL(videoUrl).searchParams.get('v') || '' : '',
+        tags: tags.length > 0 ? tags : [mood],
+        mood,
+        likes: 0,
+        views: 0,
+        comments: 0,
+        createdAt: new Date().toISOString(),
+        user: {
+          id: user.id,
+          username: user.username,
+          displayName: user.displayName,
+          avatar: user.avatar,
+        }
+      };
+      
+      // Complete the upload
+      setTimeout(() => {
+        setUploadProgress(100);
+        
+        // Add the new reel to the cache
+        queryClient.setQueryData(['reels'], (oldData: any) => {
+          return oldData ? [newReel, ...oldData] : [newReel];
+        });
+        
+        // Invalidate queries to refetch the data
+        queryClient.invalidateQueries({ queryKey: ['reels'] });
+        
+        toast.success("Reel uploaded successfully!");
+        
+        // Reset the form and close the modal
+        resetForm();
+        onClose();
+        
+        // Navigate to the reel page after a small delay
+        setTimeout(() => {
+          navigate(`/reel/${newReel.id}`);
+        }, 500);
+        
+      }, 1500);
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload the reel. Please try again.");
+      setIsUploading(false);
+      clearInterval(interval);
+    }
   };
 
   return (
@@ -187,7 +274,7 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
                   tags={tags}
                   onTagsChange={setTags}
                   mood={mood}
-                  onMoodChange={setMood}
+                  onMoodChange={(newMood) => setMood(newMood)}
                 />
 
                 <UploadProgress 
@@ -197,15 +284,30 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
                 />
 
                 <div className="flex justify-end space-x-3 pt-4">
-                  <Button variant="outline" onClick={onClose}>
+                  <Button variant="outline" onClick={onClose} disabled={isUploading}>
                     Cancel
                   </Button>
                   <Button 
                     variant="cosmic" 
                     onClick={handleSubmit}
                     disabled={(!videoFile && !videoUrl) || isUploading}
+                    className="relative overflow-hidden group"
                   >
-                    {isUploading ? "Uploading..." : "Create Reel"}
+                    <span className="relative z-10">
+                      {isUploading ? "Uploading..." : "Create Reel"}
+                    </span>
+                    <motion.div 
+                      className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20"
+                      initial={{ x: '-100%' }}
+                      animate={{ 
+                        x: isUploading ? '100%' : '-100%',
+                      }}
+                      transition={{ 
+                        duration: isUploading ? 1.5 : 0.5,
+                        repeat: isUploading ? Infinity : 0,
+                        ease: "easeInOut"
+                      }}
+                    />
                   </Button>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -33,6 +34,9 @@
     --ring: 262 83% 58%;
 
     --radius: 0.75rem;
+    
+    /* Mood theme variables */
+    --mood-color: #94A3B8; /* Default neutral color */
   }
 
   .light {
@@ -209,6 +213,79 @@
         0 0 15px rgba(124, 58, 237, 0.3);
     }
   }
+  
+  /* 3D button effects */
+  .button-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .button-3d:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 10px 20px rgba(0, 0, 0, 0.2),
+      0 6px 6px rgba(0, 0, 0, 0.15);
+  }
+  
+  .button-3d:active {
+    transform: translateY(0);
+    box-shadow: 
+      0 5px 10px rgba(0, 0, 0, 0.2),
+      0 3px 3px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Mood-based theme classes */
+  .mood-energetic {
+    --mood-accent: #F97316;
+  }
+  
+  .mood-calm {
+    --mood-accent: #0EA5E9;
+  }
+  
+  .mood-happy {
+    --mood-accent: #FACC15;
+  }
+  
+  .mood-sad {
+    --mood-accent: #6D28D9;
+  }
+  
+  .mood-neutral {
+    --mood-accent: #94A3B8;
+  }
+  
+  .mood-border {
+    border-color: var(--mood-color);
+  }
+  
+  .mood-text {
+    color: var(--mood-color);
+  }
+  
+  .mood-bg {
+    background-color: var(--mood-color);
+  }
+  
+  /* Theme transition animation */
+  .theme-transition-circle {
+    @apply fixed pointer-events-none z-[9999] transition-transform;
+    transform: scale(0);
+    transform-origin: center;
+    width: 300vmax;
+    height: 300vmax;
+    margin-top: -150vmax;
+    margin-left: -150vmax;
+    border-radius: 50%;
+  }
+
+  .theme-transition-light {
+    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(247,250,252,0.95) 100%);
+  }
+
+  .theme-transition-dark {
+    background: radial-gradient(circle, rgba(16,16,24,0.95) 0%, rgba(10,10,15,0.95) 100%);
+  }
 }
 
 @layer utilities {
@@ -219,42 +296,34 @@
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
-}
 
-/* In the animation section, add these new animations */
-@keyframes theme-transition {
-  0% {
-    opacity: 0;
-    transform: scale(0);
+  /* Hover effect utilities */
+  .hover-float {
+    @apply transition-transform duration-300;
   }
-  100% {
-    opacity: 1;
-    transform: scale(2);
+  .hover-float:hover {
+    @apply -translate-y-1;
   }
-}
-
-/* Add these new utilities at the bottom of the file */
-.theme-transition-circle {
-  @apply fixed w-[150vmax] h-[150vmax] rounded-full pointer-events-none z-[9999] transition-transform;
-  transform: scale(0);
-  transform-origin: center;
-}
-
-.theme-transition-light {
-  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(247,250,252,0.95) 100%);
-}
-
-.theme-transition-dark {
-  background: radial-gradient(circle, rgba(16,16,24,0.95) 0%, rgba(10,10,15,0.95) 100%);
-}
-
-/* Add a new animation for stars in the dark theme */
-.star-field {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -10;
-  pointer-events: none;
+  
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+  .hover-glow:hover {
+    @apply brightness-110;
+    box-shadow: 0 0 15px var(--mood-color, rgba(124, 58, 237, 0.5));
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-300;
+  }
+  .hover-scale:hover {
+    @apply scale-105;
+  }
+  
+  .hover-rotate {
+    @apply transition-transform duration-300;
+  }
+  .hover-rotate:hover {
+    @apply rotate-3;
+  }
 }
