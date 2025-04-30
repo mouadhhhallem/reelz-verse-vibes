@@ -128,63 +128,61 @@ const Settings = () => {
         >
           <Card className="backdrop-blur-xl bg-white/5 border-white/10">
             <CardContent className="p-3">
-              <Tabs 
-                defaultValue={activeTab}
-                value={activeTab} 
-                onValueChange={setActiveTab}
-                orientation="vertical"
-                className="w-full"
-              >
-                <TabsList className="flex flex-col h-auto bg-transparent space-y-1">
-                  <TabsTrigger 
-                    value="account"
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <User size={16} />
-                    Account
-                  </TabsTrigger>
-                  
-                  <TabsTrigger 
-                    value="appearance" 
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <Moon size={16} />
-                    Appearance
-                  </TabsTrigger>
-                  
-                  <TabsTrigger 
-                    value="notifications" 
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <Bell size={16} />
-                    Notifications
-                  </TabsTrigger>
-                  
-                  <TabsTrigger 
-                    value="security" 
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <Lock size={16} />
-                    Security
-                  </TabsTrigger>
-                  
-                  <TabsTrigger 
-                    value="language" 
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <Languages size={16} />
-                    Language
-                  </TabsTrigger>
-                  
-                  <TabsTrigger 
-                    value="privacy" 
-                    className="w-full justify-start gap-2 data-[state=active]:bg-primary/20"
-                  >
-                    <Shield size={16} />
-                    Privacy
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <div className="flex flex-col h-auto bg-transparent space-y-1">
+                <Button 
+                  variant={activeTab === 'account' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('account')}
+                >
+                  <User size={16} />
+                  Account
+                </Button>
+                
+                <Button 
+                  variant={activeTab === 'appearance' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('appearance')}
+                >
+                  <Moon size={16} />
+                  Appearance
+                </Button>
+                
+                <Button 
+                  variant={activeTab === 'notifications' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('notifications')}
+                >
+                  <Bell size={16} />
+                  Notifications
+                </Button>
+                
+                <Button 
+                  variant={activeTab === 'security' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('security')}
+                >
+                  <Lock size={16} />
+                  Security
+                </Button>
+                
+                <Button 
+                  variant={activeTab === 'language' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('language')}
+                >
+                  <Languages size={16} />
+                  Language
+                </Button>
+                
+                <Button 
+                  variant={activeTab === 'privacy' ? 'subtle' : 'ghost'}
+                  className="w-full justify-start gap-2"
+                  onClick={() => setActiveTab('privacy')}
+                >
+                  <Shield size={16} />
+                  Privacy
+                </Button>
+              </div>
             </CardContent>
           </Card>
           
@@ -210,365 +208,377 @@ const Settings = () => {
           transition={{ delay: 0.2 }}
         >
           <Card className="backdrop-blur-xl bg-white/5 border-white/10">
-            <TabsContent value="account" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>
-                  Manage your account details and profile information.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
+            {activeTab === 'account' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Account Settings</CardTitle>
+                  <CardDescription>
+                    Manage your account details and profile information.
+                  </CardDescription>
+                </CardHeader>
                 
-                <div className="grid gap-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="cosmic" 
-                  onClick={handleSaveSettings}
-                  disabled={isSubmitting}
-                >
-                  <Save size={16} className="mr-2" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="appearance" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Appearance</CardTitle>
-                <CardDescription>
-                  Customize the look and feel of the application.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Dark Mode</p>
-                    <p className="text-sm text-muted-foreground">
-                      Toggle between light and dark themes
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Sun size={16} />
-                    <Switch
-                      checked={viewMode === 'bubble'}
-                      onCheckedChange={toggleViewMode}
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
                     />
-                    <Moon size={16} />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
+                    />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
+                    />
                   </div>
                 </div>
                 
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Reduced Motion</p>
-                    <p className="text-sm text-muted-foreground">
-                      Minimize animations for accessibility
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">High Contrast</p>
-                    <p className="text-sm text-muted-foreground">
-                      Increase contrast for better visibility
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="notifications" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>
-                  Configure how and when you receive notifications.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Enable Notifications</p>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications about new activity
-                    </p>
-                  </div>
-                  <Switch
-                    name="notificationsEnabled"
-                    checked={formData.notificationsEnabled}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, notificationsEnabled: checked }))
-                    }
-                  />
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Email Notifications</p>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications via email
-                    </p>
-                  </div>
-                  <Switch
-                    name="emailNotifications"
-                    checked={formData.emailNotifications}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, emailNotifications: checked }))
-                    }
-                    disabled={!formData.notificationsEnabled}
-                  />
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Push Notifications</p>
-                    <p className="text-sm text-muted-foreground">
-                      Receive push notifications on your device
-                    </p>
-                  </div>
-                  <Switch
-                    name="pushNotifications"
-                    checked={formData.pushNotifications}
-                    onCheckedChange={(checked) => 
-                      setFormData(prev => ({ ...prev, pushNotifications: checked }))
-                    }
-                    disabled={!formData.notificationsEnabled}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="cosmic" 
-                  onClick={handleSaveSettings}
-                  disabled={isSubmitting}
-                >
-                  <Save size={16} className="mr-2" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="security" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Security</CardTitle>
-                <CardDescription>
-                  Manage your password and security settings.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <Input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type="password"
-                    value={formData.currentPassword}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <Input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="bg-white/5"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="cosmic" 
-                  onClick={handleChangePassword}
-                  disabled={isSubmitting || !formData.currentPassword || !formData.newPassword || !formData.confirmPassword}
-                >
-                  <Lock size={16} className="mr-2" />
-                  {isSubmitting ? 'Changing...' : 'Change Password'}
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="language" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Language</CardTitle>
-                <CardDescription>
-                  Change your preferred language.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="language">Language</Label>
-                  <select 
-                    id="language"
-                    name="language"
-                    value={formData.language}
-                    onChange={(e) => setFormData(prev => ({ ...prev, language: e.target.value }))}
-                    className="p-3 rounded-md bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
+                <div className="flex justify-end">
+                  <Button 
+                    variant="cosmic" 
+                    onClick={handleSaveSettings}
+                    disabled={isSubmitting}
                   >
-                    <option value="english">English</option>
-                    <option value="spanish">Spanish</option>
-                    <option value="french">French</option>
-                    <option value="german">German</option>
-                    <option value="japanese">Japanese</option>
-                  </select>
+                    <Save size={16} className="mr-2" />
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
                 </div>
               </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="cosmic" 
-                  onClick={handleSaveSettings}
-                  disabled={isSubmitting}
-                >
-                  <Save size={16} className="mr-2" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </TabsContent>
+            )}
             
-            <TabsContent value="privacy" className="space-y-6 p-6">
-              <CardHeader className="px-0 pt-0">
-                <CardTitle>Privacy</CardTitle>
-                <CardDescription>
-                  Control your privacy settings and account visibility.
-                </CardDescription>
-              </CardHeader>
-              
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium">Profile Visibility</p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Control who can see your profile
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <Button 
-                      variant={formData.profileVisibility === 'public' ? 'cosmic' : 'outline'}
-                      size="sm"
-                      className="flex justify-center"
-                      onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'public' }))}
-                    >
-                      Public
-                    </Button>
-                    <Button 
-                      variant={formData.profileVisibility === 'followers' ? 'cosmic' : 'outline'}
-                      size="sm" 
-                      className="flex justify-center"
-                      onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'followers' }))}
-                    >
-                      Followers Only
-                    </Button>
-                    <Button 
-                      variant={formData.profileVisibility === 'private' ? 'cosmic' : 'outline'}
-                      size="sm" 
-                      className="flex justify-center"
-                      onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'private' }))}
-                    >
-                      Private
-                    </Button>
+            {activeTab === 'appearance' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Appearance</CardTitle>
+                  <CardDescription>
+                    Customize the look and feel of the application.
+                  </CardDescription>
+                </CardHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Dark Mode</p>
+                      <p className="text-sm text-muted-foreground">
+                        Toggle between light and dark themes
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Sun size={16} />
+                      <Switch
+                        checked={viewMode === 'bubble'}
+                        onCheckedChange={toggleViewMode}
+                      />
+                      <Moon size={16} />
+                    </div>
                   </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Show Activity Status</p>
-                    <p className="text-sm text-muted-foreground">
-                      Let others know when you're active
-                    </p>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Reduced Motion</p>
+                      <p className="text-sm text-muted-foreground">
+                        Minimize animations for accessibility
+                      </p>
+                    </div>
+                    <Switch />
                   </div>
-                  <Switch />
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Allow Tagging</p>
-                    <p className="text-sm text-muted-foreground">
-                      Let others tag you in reels and comments
-                    </p>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">High Contrast</p>
+                      <p className="text-sm text-muted-foreground">
+                        Increase contrast for better visibility
+                      </p>
+                    </div>
+                    <Switch />
                   </div>
-                  <Switch defaultChecked />
                 </div>
               </div>
-              
-              <div className="flex justify-end">
-                <Button 
-                  variant="cosmic" 
-                  onClick={handleSaveSettings}
-                  disabled={isSubmitting}
-                >
-                  <Save size={16} className="mr-2" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
+            )}
+            
+            {activeTab === 'notifications' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Notification Settings</CardTitle>
+                  <CardDescription>
+                    Configure how and when you receive notifications.
+                  </CardDescription>
+                </CardHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Enable Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications about new activity
+                      </p>
+                    </div>
+                    <Switch
+                      name="notificationsEnabled"
+                      checked={formData.notificationsEnabled}
+                      onCheckedChange={(checked) => 
+                        setFormData(prev => ({ ...prev, notificationsEnabled: checked }))
+                      }
+                    />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Email Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive notifications via email
+                      </p>
+                    </div>
+                    <Switch
+                      name="emailNotifications"
+                      checked={formData.emailNotifications}
+                      onCheckedChange={(checked) => 
+                        setFormData(prev => ({ ...prev, emailNotifications: checked }))
+                      }
+                      disabled={!formData.notificationsEnabled}
+                    />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Push Notifications</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive push notifications on your device
+                      </p>
+                    </div>
+                    <Switch
+                      name="pushNotifications"
+                      checked={formData.pushNotifications}
+                      onCheckedChange={(checked) => 
+                        setFormData(prev => ({ ...prev, pushNotifications: checked }))
+                      }
+                      disabled={!formData.notificationsEnabled}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="cosmic" 
+                    onClick={handleSaveSettings}
+                    disabled={isSubmitting}
+                  >
+                    <Save size={16} className="mr-2" />
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
               </div>
-            </TabsContent>
+            )}
+            
+            {activeTab === 'security' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Security</CardTitle>
+                  <CardDescription>
+                    Manage your password and security settings.
+                  </CardDescription>
+                </CardHeader>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      name="currentPassword"
+                      type="password"
+                      value={formData.currentPassword}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
+                    />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      value={formData.newPassword}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
+                    />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="bg-white/5"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="cosmic" 
+                    onClick={handleChangePassword}
+                    disabled={isSubmitting || !formData.currentPassword || !formData.newPassword || !formData.confirmPassword}
+                  >
+                    <Lock size={16} className="mr-2" />
+                    {isSubmitting ? 'Changing...' : 'Change Password'}
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'language' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Language</CardTitle>
+                  <CardDescription>
+                    Change your preferred language.
+                  </CardDescription>
+                </CardHeader>
+                
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="language">Language</Label>
+                    <select 
+                      id="language"
+                      name="language"
+                      value={formData.language}
+                      onChange={(e) => setFormData(prev => ({ ...prev, language: e.target.value }))}
+                      className="p-3 rounded-md bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="english">English</option>
+                      <option value="spanish">Spanish</option>
+                      <option value="french">French</option>
+                      <option value="german">German</option>
+                      <option value="japanese">Japanese</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="cosmic" 
+                    onClick={handleSaveSettings}
+                    disabled={isSubmitting}
+                  >
+                    <Save size={16} className="mr-2" />
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            {activeTab === 'privacy' && (
+              <div className="space-y-6 p-6">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle>Privacy</CardTitle>
+                  <CardDescription>
+                    Control your privacy settings and account visibility.
+                  </CardDescription>
+                </CardHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium">Profile Visibility</p>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Control who can see your profile
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <Button 
+                        variant={formData.profileVisibility === 'public' ? 'cosmic' : 'outline'}
+                        size="sm"
+                        className="flex justify-center"
+                        onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'public' }))}
+                      >
+                        Public
+                      </Button>
+                      <Button 
+                        variant={formData.profileVisibility === 'followers' ? 'cosmic' : 'outline'}
+                        size="sm" 
+                        className="flex justify-center"
+                        onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'followers' }))}
+                      >
+                        Followers Only
+                      </Button>
+                      <Button 
+                        variant={formData.profileVisibility === 'private' ? 'cosmic' : 'outline'}
+                        size="sm" 
+                        className="flex justify-center"
+                        onClick={() => setFormData(prev => ({ ...prev, profileVisibility: 'private' }))}
+                      >
+                        Private
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Show Activity Status</p>
+                      <p className="text-sm text-muted-foreground">
+                        Let others know when you're active
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Allow Tagging</p>
+                      <p className="text-sm text-muted-foreground">
+                        Let others tag you in reels and comments
+                      </p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    variant="cosmic" 
+                    onClick={handleSaveSettings}
+                    disabled={isSubmitting}
+                  >
+                    <Save size={16} className="mr-2" />
+                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </motion.div>
       </div>

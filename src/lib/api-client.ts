@@ -92,6 +92,70 @@ class ApiClient {
     }));
   }
   
+  // Add missing methods for ReelDetail and Search pages
+  async getReelById(reelId: string): Promise<Reel | null> {
+    // Simulate fetching a specific reel
+    return {
+      id: reelId,
+      title: `Reel ${reelId}`,
+      description: "This is a detailed description of the reel content, showing what the video is about.",
+      userId: mockUsers[0].id,
+      user: {
+        name: mockUsers[0].name,
+        username: mockUsers[0].username,
+        avatar: mockUsers[0].avatar
+      },
+      videoUrl: "https://example.com/video.mp4",
+      thumbnailUrl: `https://picsum.photos/seed/${reelId}/720/1280`,
+      isYouTube: false,
+      sourceType: "upload",
+      views: Math.floor(Math.random() * 10000),
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 100),
+      createdAt: new Date().toISOString(),
+      tags: ["fun", "gaming", "tutorial"],
+      mood: "energetic",
+      isFollowing: true
+    };
+  }
+  
+  async getTrendingTags(): Promise<string[]> {
+    // Simulate fetching trending tags
+    return ["gaming", "tutorial", "funny", "music", "tech", "sports", "food", "travel"];
+  }
+  
+  async getCategories(): Promise<string[]> {
+    // Simulate fetching categories
+    return ["Gaming", "Education", "Entertainment", "Music", "Sports", "Technology", "Food", "Travel"];
+  }
+  
+  async searchReels(query: string, filter?: string): Promise<Reel[]> {
+    // Simulate searching for reels
+    console.log(`Searching for reels with query: ${query}, filter: ${filter}`);
+    return Array(5).fill(0).map((_, i) => ({
+      id: `search-result-${i}`,
+      title: `Search Result for "${query}" #${i}`,
+      description: `This reel matches your search for "${query}"`,
+      userId: mockUsers[i % mockUsers.length].id,
+      user: {
+        name: mockUsers[i % mockUsers.length].name,
+        username: mockUsers[i % mockUsers.length].username,
+        avatar: mockUsers[i % mockUsers.length].avatar
+      },
+      videoUrl: "https://example.com/video.mp4",
+      thumbnailUrl: `https://picsum.photos/seed/search${i}/720/1280`,
+      isYouTube: i % 2 === 0,
+      sourceType: i % 2 === 0 ? "youtube" : "upload",
+      views: Math.floor(Math.random() * 10000),
+      likes: Math.floor(Math.random() * 1000),
+      comments: Math.floor(Math.random() * 100),
+      createdAt: new Date().toISOString(),
+      tags: ["search", query, "result"].filter(Boolean),
+      mood: ["energetic", "calm", "happy", "sad", "neutral"][Math.floor(Math.random() * 5)] as Reel["mood"],
+      isFollowing: Math.random() > 0.5
+    }));
+  }
+  
   async getMyUploads(): Promise<Reel[]> {
     // Simulate fetching user's uploaded reels
     return Array(3).fill(0).map((_, i) => ({
