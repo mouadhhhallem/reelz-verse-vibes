@@ -16,6 +16,8 @@ import Favorites from "./pages/Favorites";
 import Legal from "./pages/Legal";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Leaderboard from "./pages/Leaderboard";
+import Settings from "./pages/Settings";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -42,8 +44,11 @@ const App = () => (
                   <Route path="search" element={<Search />} />
                   <Route path="reel/:id" element={<ReelDetail />} />
                   <Route path="profile" element={<Profile />} />
+                  <Route path="profile/:username" element={<Profile />} />
                   <Route path="favorites" element={<Favorites />} />
                   <Route path="login" element={<Login />} />
+                  <Route path="leaderboard" element={<Leaderboard />} />
+                  <Route path="settings" element={<Settings />} />
                 </Route>
                 <Route path="legal" element={<Legal />} />
                 <Route path="legal/:section" element={<Legal />} />
