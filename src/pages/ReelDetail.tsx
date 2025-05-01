@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -150,7 +149,6 @@ const ReelDetail: React.FC = () => {
           
           <CommentSection 
             reelId={id || ''}
-            comments={comments}
             isLoading={isLoadingComments}
             user={reel.user}
           />
