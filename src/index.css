@@ -2,328 +2,161 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
-
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 172 61% 50%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 262 83% 58%;
-
-    --radius: 0.75rem;
     
-    /* Mood theme variables */
-    --mood-color: #94A3B8; /* Default neutral color */
-  }
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+ 
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+ 
+    --primary: 252 100% 67%;
+    --primary-foreground: 0 0% 100%;
+ 
+    --secondary: 196 100% 53%;
+    --secondary-foreground: 0 0% 100%;
+ 
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+ 
+    --accent: 180 100% 50%;
+    --accent-foreground: 0 0% 98%;
+ 
+    --destructive: 0 62.8% 40.6%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 0 0% 24.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.9%;
+ 
+    --radius: 0.5rem;
 
+    --reelz-purple: 252 100% 67%;
+    --reelz-teal: 180 100% 50%;
+  }
+ 
   .light {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 0 0% 3.9%;
+ 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 0 0% 3.9%;
+ 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 172 61% 50%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    --popover-foreground: 0 0% 3.9%;
+ 
+    --primary: 252 100% 67%;
+    --primary-foreground: 0 0% 98%;
+ 
+    --secondary: 217 91.2% 59.8%;
+    --secondary-foreground: 0 0% 98%;
+ 
+    --muted: 0 0% 94.9%;
+    --muted-foreground: 0 0% 45.1%;
+ 
+    --accent: 161 94.4% 43.1%;
+    --accent-foreground: 0 0% 98%;
+ 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+ 
+    --radius: 0.5rem;
+  }
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262 83% 58%;
+  /* High contrast mode */
+  .high-contrast {
+    --foreground: 0 0% 100%;
+    --background: 0 0% 0%;
+    --primary: 252 100% 75%;
+    --secondary: 196 100% 65%;
+    --muted-foreground: 0 0% 80%;
+    --border: 0 0% 40%;
+    --ring: 0 0% 100%;
+  }
+  
+  /* Reduced motion mode */
+  .reduce-motion * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-  
-  /* Hide scrollbar but maintain functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  /* Bubble view styles */
-  .bubble-view .reel-card {
-    @apply rounded-3xl overflow-hidden shadow-lg;
-  }
-  
-  /* Video overlays */
-  .video-overlay {
-    @apply absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none;
-  }
-
-  /* Reel feed custom styling */
-  .reel-feed {
-    @apply snap-y snap-mandatory;
-  }
-  
-  .reel-feed > div {
-    @apply snap-start snap-always;
-  }
-  
-  /* Glass effect */
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
-  }
-  
-  .dark .glass {
-    @apply bg-black/20 backdrop-blur-md border border-white/10;
-  }
-  
-  /* Space theme custom classes */
-  .cosmic-bg {
-    background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
-  }
-  
-  .glow-text {
-    text-shadow: 0 0 5px rgba(124, 58, 237, 0.5), 0 0 20px rgba(124, 58, 237, 0.3);
-  }
-  
-  .glow-border {
-    box-shadow: 0 0 10px rgba(124, 58, 237, 0.3), 0 0 20px rgba(124, 58, 237, 0.2);
-  }
-  
-  .cosmic-gradient {
-    @apply bg-gradient-to-r from-primary to-secondary;
-  }
-  
-  /* Animated background elements */
-  .cosmic-grid {
-    background-image: 
-      linear-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124, 58, 237, 0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
-    animation: grid-move 15s linear infinite;
-  }
-  
-  @keyframes grid-move {
-    0% {
-      background-position: 0 0;
-    }
-    100% {
-      background-position: 20px 20px;
-    }
-  }
-  
-  .star {
-    position: absolute;
-    background-color: white;
-    border-radius: 50%;
-    filter: blur(1px);
-    opacity: 0.7;
-  }
-  
-  .shooting-star {
-    position: absolute;
-    width: 100px;
-    height: 1px;
-    background: linear-gradient(90deg, white, transparent);
-    border-radius: 50%;
-    filter: blur(1px);
-    opacity: 0;
-    animation: shooting 5s linear infinite;
-  }
-  
-  @keyframes shooting {
-    0% {
-      transform: translateX(0) translateY(0) rotate(-45deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translateX(500px) translateY(500px) rotate(-45deg);
-      opacity: 0;
-    }
-  }
-  
-  /* Neon effects */
-  .neon-text {
-    text-shadow: 
-      0 0 5px rgba(124, 58, 237, 0.8),
-      0 0 10px rgba(124, 58, 237, 0.5),
-      0 0 15px rgba(124, 58, 237, 0.3);
-  }
-  
-  .neon-border {
-    box-shadow: 
-      0 0 5px rgba(124, 58, 237, 0.8),
-      0 0 10px rgba(124, 58, 237, 0.5),
-      0 0 15px rgba(124, 58, 237, 0.3);
-  }
-  
-  .pulse-glow {
-    animation: pulse-glow 2s infinite alternate;
-  }
-  
-  @keyframes pulse-glow {
-    0% {
-      filter: brightness(1);
-      text-shadow: 0 0 5px rgba(124, 58, 237, 0.5);
-    }
-    100% {
-      filter: brightness(1.2);
-      text-shadow: 
-        0 0 5px rgba(124, 58, 237, 0.8),
-        0 0 10px rgba(124, 58, 237, 0.5),
-        0 0 15px rgba(124, 58, 237, 0.3);
-    }
-  }
-  
-  /* 3D button effects */
-  .button-3d {
-    transform-style: preserve-3d;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-  
-  .button-3d:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 
-      0 10px 20px rgba(0, 0, 0, 0.2),
-      0 6px 6px rgba(0, 0, 0, 0.15);
-  }
-  
-  .button-3d:active {
-    transform: translateY(0);
-    box-shadow: 
-      0 5px 10px rgba(0, 0, 0, 0.2),
-      0 3px 3px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* Mood-based theme classes */
-  .mood-energetic {
-    --mood-accent: #F97316;
-  }
-  
-  .mood-calm {
-    --mood-accent: #0EA5E9;
-  }
-  
-  .mood-happy {
-    --mood-accent: #FACC15;
-  }
-  
-  .mood-sad {
-    --mood-accent: #6D28D9;
-  }
-  
-  .mood-neutral {
-    --mood-accent: #94A3B8;
-  }
-  
-  .mood-border {
-    border-color: var(--mood-color);
-  }
-  
-  .mood-text {
-    color: var(--mood-color);
-  }
-  
-  .mood-bg {
-    background-color: var(--mood-color);
-  }
-  
-  /* Theme transition animation */
-  .theme-transition-circle {
-    @apply fixed pointer-events-none z-[9999] transition-transform;
-    transform: scale(0);
-    transform-origin: center;
-    width: 300vmax;
-    height: 300vmax;
-    margin-top: -150vmax;
-    margin-left: -150vmax;
-    border-radius: 50%;
-  }
-
-  .theme-transition-light {
-    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(247,250,252,0.95) 100%);
-  }
-
-  .theme-transition-dark {
-    background: radial-gradient(circle, rgba(16,16,24,0.95) 0%, rgba(10,10,15,0.95) 100%);
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
-  }
+/* Theme transition animation */
+.theme-transition-circle {
+  position: fixed;
+  border-radius: 50%;
+  transform: scale(0);
+  pointer-events: none;
+  z-index: 9999;
+}
 
-  /* Hover effect utilities */
-  .hover-float {
-    @apply transition-transform duration-300;
-  }
-  .hover-float:hover {
-    @apply -translate-y-1;
-  }
-  
-  .hover-glow {
-    @apply transition-all duration-300;
-  }
-  .hover-glow:hover {
-    @apply brightness-110;
-    box-shadow: 0 0 15px var(--mood-color, rgba(124, 58, 237, 0.5));
-  }
-  
-  .hover-scale {
-    @apply transition-transform duration-300;
-  }
-  .hover-scale:hover {
-    @apply scale-105;
-  }
-  
-  .hover-rotate {
-    @apply transition-transform duration-300;
-  }
-  .hover-rotate:hover {
-    @apply rotate-3;
-  }
+.theme-transition-dark {
+  background-color: rgba(23, 23, 23, 0.97);
+}
+
+.theme-transition-light {
+  background-color: rgba(250, 250, 250, 0.97);
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes cosmic-shimmer {
+  0% { opacity: 0.5; transform: translateX(-100%); }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; transform: translateX(100%); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 5s ease-in-out infinite;
+}
+
+.animate-cosmic-shimmer {
+  animation: cosmic-shimmer 2s linear infinite;
+}
+
+/* Scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Bubble view mode */
+.bubble-view {
+  /* Add specific styles for bubble view mode */
 }

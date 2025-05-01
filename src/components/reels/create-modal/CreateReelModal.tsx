@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { useQueryClient } from "@tanstack/react-query";
 import { generateVideoThumbnail } from "@/lib/video-utils";
 import { useNavigate } from "react-router-dom";
+import { useMoodTheme } from "@/components/ui/mood-theme-provider";
 
 export type ModalTab = "upload" | "youtube" | "twitch" | "vimeo";
 
@@ -43,6 +44,7 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { setMood: setGlobalMood } = useMoodTheme();
 
   const handleTabChange = (value: string) => {
     setActiveTab(value as ModalTab);
@@ -78,6 +80,9 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
     }
 
     setIsUploading(true);
+    
+    // Update global mood based on selected mood
+    setGlobalMood(mood);
     
     // Simulate upload progress with smoother animation
     const interval = setInterval(() => {
@@ -125,16 +130,17 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
         thumbnailUrl,
         isYouTube: activeTab === 'youtube',
         youtubeId: activeTab === 'youtube' ? new URL(videoUrl).searchParams.get('v') || '' : '',
+        sourceType: activeTab as any,
         tags: tags.length > 0 ? tags : [mood],
         mood,
         likes: 0,
         views: 0,
         comments: 0,
         createdAt: new Date().toISOString(),
+        userId: user.id,
         user: {
-          id: user.id,
+          name: user.name || user.username,
           username: user.username,
-          name: user.name || user.username, // Use name as fallback for displayName
           avatar: user.avatar,
         }
       };
@@ -151,7 +157,10 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
         // Invalidate queries to refetch the data
         queryClient.invalidateQueries({ queryKey: ['reels'] });
         
-        toast.success("Reel uploaded successfully!");
+        toast.success("Reel uploaded successfully!", {
+          description: "Your reel is now live and can be viewed by others.",
+          icon: "🚀",
+        });
         
         // Reset the form and close the modal
         resetForm();
@@ -175,15 +184,16 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={onClose}>
-          <DialogContent className="max-w-4xl w-full bg-background/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden p-0">
+          <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh] overflow-y-auto bg-background/90 backdrop-blur-xl border border-white/10 rounded-xl p-0">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ ease: "easeOut" }}
               className="relative"
             >
               <DialogHeader className="p-6 pb-2">
-                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
                   Create New Reel
                 </DialogTitle>
                 <Button
@@ -218,98 +228,98 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
                     </TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="upload" className="mt-6 space-y-6">
-                    <FileUploadArea onChange={handleVideoFileChange} file={videoFile} />
-                    
-                    {videoFile && (
-                      <VideoPreview file={videoFile} />
-                    )}
-                  </TabsContent>
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-6">
+                      <TabsContent value="upload" className="m-0">
+                        <FileUploadArea onChange={handleVideoFileChange} file={videoFile} />
+                      </TabsContent>
 
-                  <TabsContent value="youtube" className="mt-6 space-y-6">
-                    <UrlInputField 
-                      value={videoUrl}
-                      onChange={handleVideoUrlChange}
-                      placeholder="Paste YouTube video URL"
-                      type="youtube"
-                    />
+                      <TabsContent value="youtube" className="m-0">
+                        <UrlInputField 
+                          value={videoUrl}
+                          onChange={handleVideoUrlChange}
+                          placeholder="Paste YouTube video URL"
+                          type="youtube"
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="twitch" className="m-0">
+                        <UrlInputField 
+                          value={videoUrl}
+                          onChange={handleVideoUrlChange}
+                          placeholder="Paste Twitch clip URL"
+                          type="twitch"
+                        />
+                      </TabsContent>
+                      
+                      <TabsContent value="vimeo" className="m-0">
+                        <UrlInputField 
+                          value={videoUrl}
+                          onChange={handleVideoUrlChange}
+                          placeholder="Paste Vimeo video URL"
+                          type="vimeo"
+                        />
+                      </TabsContent>
+                      
+                      {/* Preview container with fixed height */}
+                      <div className="h-52 overflow-hidden">
+                        {videoFile && <VideoPreview file={videoFile} />}
+                        {videoUrl && <VideoPreview url={videoUrl} type={activeTab} />}
+                      </div>
+                      
+                      {videoUrl && activeTab !== 'upload' && (
+                        <ClipControls url={videoUrl} type={activeTab} />
+                      )}
+                    </div>
                     
-                    {videoUrl && (
-                      <ClipControls url={videoUrl} type="youtube" />
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="twitch" className="mt-6 space-y-6">
-                    <UrlInputField 
-                      value={videoUrl}
-                      onChange={handleVideoUrlChange}
-                      placeholder="Paste Twitch clip URL"
-                      type="twitch"
-                    />
-                    
-                    {videoUrl && (
-                      <ClipControls url={videoUrl} type="twitch" />
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="vimeo" className="mt-6 space-y-6">
-                    <UrlInputField 
-                      value={videoUrl}
-                      onChange={handleVideoUrlChange}
-                      placeholder="Paste Vimeo video URL"
-                      type="vimeo"
-                    />
-                    
-                    {videoUrl && (
-                      <ClipControls url={videoUrl} type="vimeo" />
-                    )}
-                  </TabsContent>
+                    <div className="space-y-6">
+                      <ReelForm
+                        title={title}
+                        onTitleChange={setTitle}
+                        description={description}
+                        onDescriptionChange={setDescription}
+                        tags={tags}
+                        onTagsChange={setTags}
+                        mood={mood}
+                        onMoodChange={(newMood) => setMood(newMood)}
+                      />
+                    </div>
+                  </div>
+
+                  <UploadProgress 
+                    isUploading={isUploading}
+                    activeTab={activeTab}
+                    uploadProgress={uploadProgress}
+                  />
+
+                  <div className="flex justify-end space-x-3 pt-4 sticky bottom-0 bg-background/80 backdrop-blur-md p-4">
+                    <Button variant="outline" onClick={onClose} disabled={isUploading}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      variant="cosmic" 
+                      onClick={handleSubmit}
+                      disabled={(!videoFile && !videoUrl) || isUploading}
+                      className="relative overflow-hidden group min-w-32"
+                    >
+                      <span className="relative z-10">
+                        {isUploading ? "Uploading..." : "Create Reel"}
+                      </span>
+                      <motion.div 
+                        className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20"
+                        initial={{ x: '-100%' }}
+                        animate={{ 
+                          x: isUploading ? '100%' : '-100%',
+                        }}
+                        transition={{ 
+                          duration: isUploading ? 1.5 : 0.5,
+                          repeat: isUploading ? Infinity : 0,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    </Button>
+                  </div>
                 </Tabs>
-
-                <ReelForm
-                  title={title}
-                  onTitleChange={setTitle}
-                  description={description}
-                  onDescriptionChange={setDescription}
-                  tags={tags}
-                  onTagsChange={setTags}
-                  mood={mood}
-                  onMoodChange={(newMood) => setMood(newMood)}
-                />
-
-                <UploadProgress 
-                  isUploading={isUploading}
-                  activeTab={activeTab}
-                  uploadProgress={uploadProgress}
-                />
-
-                <div className="flex justify-end space-x-3 pt-4">
-                  <Button variant="outline" onClick={onClose} disabled={isUploading}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="cosmic" 
-                    onClick={handleSubmit}
-                    disabled={(!videoFile && !videoUrl) || isUploading}
-                    className="relative overflow-hidden group"
-                  >
-                    <span className="relative z-10">
-                      {isUploading ? "Uploading..." : "Create Reel"}
-                    </span>
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20"
-                      initial={{ x: '-100%' }}
-                      animate={{ 
-                        x: isUploading ? '100%' : '-100%',
-                      }}
-                      transition={{ 
-                        duration: isUploading ? 1.5 : 0.5,
-                        repeat: isUploading ? Infinity : 0,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  </Button>
-                </div>
               </div>
             </motion.div>
           </DialogContent>
