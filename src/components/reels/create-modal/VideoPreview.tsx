@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { extractVideoId } from '@/lib/video-utils';
 
 interface VideoPreviewProps {
   file?: File;
   url?: string;
-  type?: 'youtube' | 'twitch' | 'vimeo';
+  type?: 'youtube' | 'twitch' | 'vimeo' | 'upload';
 }
 
 export const VideoPreview: React.FC<VideoPreviewProps> = ({ file, url, type }) => {
@@ -25,6 +26,9 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ file, url, type }) =
   if (!file && !url) {
     return null;
   }
+
+  // Extract video ID based on platform
+  const videoId = url ? extractVideoId(url, type as any) : null;
   
   return (
     <motion.div 
@@ -39,11 +43,24 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({ file, url, type }) =
             className="w-full h-full object-contain" 
             controls 
           />
-        ) : url && type === 'youtube' ? (
+        ) : url && type === 'youtube' && videoId ? (
           <iframe
-            src={`https://www.youtube.com/embed/${new URL(url).searchParams.get('v')}`}
+            src={`https://www.youtube.com/embed/${videoId}`}
             className="w-full aspect-video"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : url && type === 'vimeo' && videoId ? (
+          <iframe
+            src={`https://player.vimeo.com/video/${videoId}`}
+            className="w-full aspect-video"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        ) : url && type === 'twitch' && videoId ? (
+          <iframe
+            src={`https://clips.twitch.tv/embed?clip=${videoId}&parent=${window.location.hostname}`}
+            className="w-full aspect-video"
             allowFullScreen
           />
         ) : (
