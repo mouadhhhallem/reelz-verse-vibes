@@ -5,6 +5,11 @@ export interface User {
   username: string;
   email: string;
   avatar: string;
+  displayName?: string; // Added property
+  bio?: string; // Added property
+  reelsCount?: number; // Added property
+  followersCount?: number; // Added property
+  followingCount?: number; // Added property
   isAdmin: boolean;
   notificationsEnabled: boolean;
   stats: {

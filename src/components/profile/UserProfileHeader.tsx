@@ -19,6 +19,9 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
   onFollow,
   isFollowing = false
 }) => {
+  // Use displayName or fallback to name or username
+  const displayName = user.displayName || user.name || user.username;
+  
   return (
     <motion.div 
       className="relative overflow-hidden rounded-xl bg-black/20 backdrop-blur-lg border border-white/10 p-6"
@@ -61,9 +64,9 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
         >
           <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-secondary blur-xl opacity-50"></div>
           <Avatar className="w-24 h-24 md:w-32 md:h-32 border-2 border-white/20">
-            <AvatarImage src={user.avatar} alt={user.displayName} />
+            <AvatarImage src={user.avatar} alt={displayName} />
             <AvatarFallback className="bg-primary/20 text-xl">
-              {user.displayName?.substring(0, 2).toUpperCase() || user.username?.substring(0, 2).toUpperCase()}
+              {displayName?.substring(0, 2).toUpperCase() || user.username?.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </motion.div>
@@ -76,7 +79,7 @@ export const UserProfileHeader: React.FC<UserProfileHeaderProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            {user.displayName}
+            {displayName}
           </motion.h1>
           
           <motion.p 

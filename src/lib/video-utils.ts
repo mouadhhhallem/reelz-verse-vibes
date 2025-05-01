@@ -1,4 +1,3 @@
-
 import { VideoSourceType } from '@/types';
 
 /**
@@ -83,4 +82,64 @@ export const generateThumbnailUrl = (videoId: string, platform: VideoSourceType)
     default:
       return `https://picsum.photos/seed/${videoId}/640/360`; // Mock
   }
+};
+
+/**
+ * Generate a thumbnail from a video file
+ * @param videoFile The video file to generate a thumbnail from
+ * @returns Promise that resolves with the data URL of the thumbnail
+ */
+export const generateVideoThumbnail = async (videoFile: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      // Create a video element to load the file
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      
+      // Create a URL for the video file
+      const url = URL.createObjectURL(videoFile);
+      
+      // Set up event handlers
+      video.onloadedmetadata = () => {
+        // Seek to the quarter point of the video for a good thumbnail
+        video.currentTime = Math.min(video.duration / 4, 3); // Use quarter of duration or 3 seconds, whichever is less
+      };
+      
+      video.onseeked = () => {
+        // Create a canvas to draw the video frame
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw the current frame to the canvas
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          // Convert the canvas to a data URL
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          
+          // Clean up resources
+          URL.revokeObjectURL(url);
+          
+          // Return the data URL
+          resolve(dataUrl);
+        } else {
+          reject(new Error('Could not get canvas context'));
+        }
+      };
+      
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Error loading video file'));
+      };
+      
+      // Start loading the video
+      video.src = url;
+    } catch (error) {
+      // If anything goes wrong, return a placeholder image
+      console.error('Error generating thumbnail:', error);
+      reject(error);
+    }
+  });
 };

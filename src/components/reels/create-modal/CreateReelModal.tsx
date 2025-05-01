@@ -134,7 +134,7 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
         user: {
           id: user.id,
           username: user.username,
-          displayName: user.displayName,
+          name: user.name || user.username, // Use name as fallback for displayName
           avatar: user.avatar,
         }
       };
