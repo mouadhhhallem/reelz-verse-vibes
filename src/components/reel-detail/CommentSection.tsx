@@ -17,9 +17,15 @@ interface Comment {
 
 interface CommentSectionProps {
   reelId: string;
+  isLoading?: boolean;
+  user?: {
+    name: string;
+    username: string;
+    avatar: string;
+  };
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ reelId }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ reelId, isLoading = false, user }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,8 +40,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ reelId }) => {
       const comment: Comment = {
         id: `comment-${Date.now()}`,
         text: newComment,
-        username: 'currentUser',
-        avatar: '/placeholder.svg',
+        username: user?.username || 'currentUser',
+        avatar: user?.avatar || '/placeholder.svg',
         createdAt: new Date(),
         likes: 0
       };
@@ -55,8 +61,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ reelId }) => {
         
         <div className="flex gap-3">
           <Avatar>
-            <AvatarImage src="/placeholder.svg" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+            <AvatarFallback>{(user?.name || "U")[0].toUpperCase()}</AvatarFallback>
           </Avatar>
           
           <div className="flex-1 space-y-2">
@@ -69,7 +75,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ reelId }) => {
             <div className="flex justify-end">
               <Button 
                 onClick={handleAddComment}
-                disabled={!newComment.trim() || isSubmitting}
+                disabled={!newComment.trim() || isSubmitting || isLoading}
                 size="sm"
               >
                 {isSubmitting ? 'Posting...' : 'Post Comment'}

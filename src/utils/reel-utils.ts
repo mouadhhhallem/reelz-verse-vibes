@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/video-utils";
 import { ModalTab, ReelMood } from "@/hooks/useReelUpload";
@@ -79,7 +78,7 @@ export const createReelObject = (
 export const simulateUploadProgress = (
   setProgress: (value: number) => void
 ): ReturnType<typeof setInterval> => {
-  return setInterval(() => {
+  const interval = setInterval(() => {
     setProgress((prev) => {
       const increment = Math.random() * 15 + 5; // Random increment between 5-20%
       const newProgress = prev + increment;
@@ -91,6 +90,8 @@ export const simulateUploadProgress = (
       return newProgress;
     });
   }, 300);
+  
+  return interval;
 };
 
 /**
@@ -104,4 +105,3 @@ export const validateReelForm = (videoFile: File | null, videoUrl: string): bool
   
   return true;
 };
-
