@@ -64,12 +64,12 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				reelz: {
-					purple: '#7C3AED',
-					teal: '#14B8A6',
+					purple: '#9b87f5',
+					teal: '#33C3F0',
 					dark: '#121212',
 					light: '#F9FAFB',
-					'purple-light': '#9F7AEA',
-					'purple-dark': '#6D28D9',
+					'purple-light': '#D6BCFA',
+					'purple-dark': '#6E59A5',
 					'energetic': '#F97316',
 					'calm': '#0EA5E9',
 					'happy': '#FACC15',

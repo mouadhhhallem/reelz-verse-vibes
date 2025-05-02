@@ -58,12 +58,13 @@ export const SideNavigation: React.FC = () => {
         className="mb-10"
       >
         <NavLink to="/" className="flex items-center">
-          <motion.h1 
-            className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
-            whileHover={{ scale: 1.05 }}
-          >
-            Reelz
-          </motion.h1>
+          <div className="flex flex-col items-center">
+            <img 
+              src="/lovable-uploads/40821c9b-79e6-4345-8b22-4be616510c32.png" 
+              alt="Reelz" 
+              className="h-14 w-auto" 
+            />
+          </div>
         </NavLink>
       </motion.div>
 

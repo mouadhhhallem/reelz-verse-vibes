@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Settings, Moon, Sun } from 'lucide-react';
+import { Search, Moon, Sun } from 'lucide-react';
 import { useViewMode } from '@/contexts/ViewModeContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -55,7 +55,11 @@ export const TopNavigation: React.FC = () => {
           {/* Mobile Logo - Visible on mobile only */}
           <div className="md:hidden">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-reelz-teal bg-clip-text text-transparent">Desebere</span>
+              <img 
+                src="/lovable-uploads/bca827df-e2b6-4764-8e29-be1293c605af.png" 
+                alt="Reelz" 
+                className="h-8 w-auto" 
+              />
             </Link>
           </div>
 
@@ -97,9 +101,11 @@ export const TopNavigation: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="hidden md:block"
           >
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-reelz-teal bg-clip-text text-transparent">
-              Desebere
-            </span>
+            <img 
+              src="/lovable-uploads/659ed189-01a7-463c-85fe-2467c74338fb.png" 
+              alt="Reelz" 
+              className="h-8 w-auto" 
+            />
           </motion.div>
 
           <Link to="/search">

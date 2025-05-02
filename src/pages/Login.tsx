@@ -42,9 +42,16 @@ const Login: React.FC = () => {
       >
         <Card>
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="/lovable-uploads/40821c9b-79e6-4345-8b22-4be616510c32.png" 
+                alt="Reelz" 
+                className="h-20 w-auto" 
+              />
+            </div>
             <CardTitle className="text-3xl font-bold">
               <span className="bg-gradient-to-r from-reelz-purple to-reelz-teal bg-clip-text text-transparent">
-                Reelz
+                Welcome Back
               </span>
             </CardTitle>
             <CardDescription>

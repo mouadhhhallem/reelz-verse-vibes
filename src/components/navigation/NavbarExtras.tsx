@@ -15,6 +15,19 @@ export function NavbarExtras() {
   
   return (
     <div className="flex items-center gap-3">
+      {/* Logo */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <img 
+          src="/lovable-uploads/bca827df-e2b6-4764-8e29-be1293c605af.png" 
+          alt="Reelz" 
+          className="h-8 w-auto mr-3" 
+        />
+      </motion.div>
+      
       {/* WOW button */}
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}

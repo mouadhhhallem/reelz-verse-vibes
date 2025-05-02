@@ -48,7 +48,30 @@ export const MobileNavigation: React.FC = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="bottom" className="h-[80vh] rounded-t-3xl backdrop-blur-xl bg-background/60">
-            <CreateReelContent />
+            <div className="flex flex-col items-center pt-6">
+              <img 
+                src="/lovable-uploads/40821c9b-79e6-4345-8b22-4be616510c32.png" 
+                alt="Reelz" 
+                className="h-12 w-auto mb-6" 
+              />
+              <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Create New Reel
+              </h2>
+              <div className="grid gap-4 w-full">
+                <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
+                  <Plus size={24} /> Upload Video
+                </Button>
+                <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
+                  <Plus size={24} /> YouTube Link
+                </Button>
+                <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
+                  <Plus size={24} /> Twitch Clip
+                </Button>
+                <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
+                  <Plus size={24} /> Vimeo Video
+                </Button>
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
 
@@ -67,28 +90,5 @@ export const MobileNavigation: React.FC = () => {
         </NavLink>
       </div>
     </motion.div>
-  );
-};
-
-// Placeholder for CreateReelContent component
-const CreateReelContent: React.FC = () => {
-  return (
-    <div className="flex flex-col items-center pt-6">
-      <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Create New Reel</h2>
-      <div className="grid gap-4 w-full">
-        <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
-          <Plus size={24} /> Upload Video
-        </Button>
-        <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
-          <Plus size={24} /> YouTube Link
-        </Button>
-        <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
-          <Plus size={24} /> Twitch Clip
-        </Button>
-        <Button className="h-20 text-lg gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10">
-          <Plus size={24} /> Vimeo Video
-        </Button>
-      </div>
-    </div>
   );
 };
