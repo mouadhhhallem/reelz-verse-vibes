@@ -33,10 +33,13 @@
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.9%;
  
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --reelz-purple: 252 100% 67%;
     --reelz-teal: 180 100% 50%;
+    
+    --theme-intensity: 1;
+    --theme-warmth: 1;
   }
  
   .light {
@@ -68,10 +71,76 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.9%;
  
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
-  /* High contrast mode */
+  /* Cosmic theme - Dark variant */
+  .cosmic-dark {
+    --background: 240 24% 12%;
+    --foreground: 270 70% 98%;
+
+    --card: 240 24% 12%;
+    --card-foreground: 270 70% 98%;
+
+    --popover: 240 24% 12%;
+    --popover-foreground: 270 70% 98%;
+
+    --primary: 270 70% 60%;
+    --primary-foreground: 270 70% 98%;
+
+    --secondary: 220 70% 60%;
+    --secondary-foreground: 270 70% 98%;
+
+    --muted: 240 24% 20%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 190 90% 60%;
+    --accent-foreground: 270 70% 98%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 270 70% 98%;
+
+    --border: 240 24% 24%;
+    --input: 240 24% 20%;
+    --ring: 270 70% 60%;
+
+    --radius: 1rem;
+  }
+
+  /* Cosmic theme - Light variant (Daylight cosmic) */
+  .cosmic-light {
+    --background: 240 30% 98%;
+    --foreground: 240 24% 12%;
+
+    --card: 240 30% 98%;
+    --card-foreground: 240 24% 12%;
+
+    --popover: 240 30% 98%;
+    --popover-foreground: 240 24% 12%;
+
+    --primary: 270 70% 60%;
+    --primary-foreground: 240 30% 98%;
+
+    --secondary: 220 70% 60%;
+    --secondary-foreground: 240 30% 98%;
+
+    --muted: 240 5% 90%;
+    --muted-foreground: 240 3.8% 45%;
+
+    --accent: 190 90% 60%;
+    --accent-foreground: 240 30% 98%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 240 30% 98%;
+
+    --border: 240 5% 85%;
+    --input: 240 5% 90%;
+    --ring: 270 70% 60%;
+
+    --radius: 1rem;
+  }
+
+  /* Accessibility - High contrast mode */
   .high-contrast {
     --foreground: 0 0% 100%;
     --background: 0 0% 0%;
@@ -96,7 +165,72 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Neumorphic UI Components */
+  .neumorphic-card {
+    @apply bg-background/80 backdrop-blur-md border border-white/10 shadow-xl rounded-xl relative overflow-hidden;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.3), -5px -5px 15px rgba(255,255,255,0.1);
+  }
+  
+  .neumorphic-button {
+    @apply relative bg-background/80 backdrop-blur-md border border-white/10 shadow-md rounded-lg transition-all duration-300 hover:shadow-lg active:shadow-sm;
+    box-shadow: 5px 5px 10px rgba(0,0,0,0.2), -2px -2px 10px rgba(255,255,255,0.1);
+  }
+  
+  .neumorphic-button:active {
+    @apply animate-neumorphic-press;
+  }
+
+  /* Glassmorphism UI Components */
+  .glass {
+    @apply backdrop-blur-xl bg-white/10 border border-white/20 rounded-xl;
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-lg bg-white/5 border border-white/10 rounded-xl shadow-lg;
+  }
+
+  .glass-input {
+    @apply backdrop-blur-md bg-white/5 border border-white/20 rounded-lg focus:ring-2 focus:ring-primary/50;
+  }
+
+  /* Cosmic UI Components */
+  .cosmic-panel {
+    @apply glass-card relative overflow-hidden;
+  }
+  
+  .cosmic-panel::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-70 pointer-events-none;
+  }
+  
+  .cosmic-button {
+    @apply relative overflow-hidden rounded-lg px-4 py-2 bg-gradient-to-r from-primary/80 to-secondary/80 text-white font-medium transition-all;
+  }
+  
+  .cosmic-button::before {
+    content: '';
+    @apply absolute inset-0 bg-shimmer-gradient animate-shimmer opacity-50;
+  }
+
+  .nebula-orb {
+    @apply absolute rounded-full opacity-30 animate-nebula-pulse;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.7) 0%, rgba(124, 58, 237, 0.5) 50%, rgba(0, 0, 0, 0) 70%);
+    filter: blur(20px);
+  }
+
+  .star {
+    @apply absolute rounded-full bg-white animate-star-twinkle;
+  }
+
+  .aurora-wave {
+    @apply absolute w-full h-40 bottom-0 animate-aurora-wave overflow-hidden opacity-20;
+    background: linear-gradient(to top, rgba(20, 184, 166, 0.3) 0%, rgba(0, 0, 0, 0) 100%);
+    filter: blur(20px);
   }
 }
 
@@ -117,35 +251,6 @@
   background-color: rgba(250, 250, 250, 0.97);
 }
 
-/* Custom animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
-}
-
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
-}
-
-@keyframes cosmic-shimmer {
-  0% { opacity: 0.5; transform: translateX(-100%); }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; transform: translateX(100%); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 5s ease-in-out infinite;
-}
-
-.animate-cosmic-shimmer {
-  animation: cosmic-shimmer 2s linear infinite;
-}
-
 /* Scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
@@ -156,7 +261,76 @@
   display: none; /* Chrome, Safari and Opera */
 }
 
+/* Mood-specific styling */
+.mood-cosmic button.primary {
+  @apply bg-gradient-to-r from-reelz-cosmic to-purple-500;
+}
+
+.mood-nebula button.primary {
+  @apply bg-gradient-to-r from-reelz-nebula to-pink-400;
+}
+
+.mood-aurora button.primary {
+  @apply bg-gradient-to-r from-reelz-aurora to-teal-400;
+}
+
+/* Enhanced Button Styling */
+button.cosmic {
+  @apply relative overflow-hidden backdrop-blur-md bg-background/20 border border-white/10 rounded-lg hover:bg-white/10 transition-all;
+}
+
+button.cosmic::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500;
+}
+
+/* React Text Styling */
+.text-gradient {
+  @apply bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent;
+}
+
 /* Bubble view mode */
-.bubble-view {
-  /* Add specific styles for bubble view mode */
+.bubble-view .reel-card {
+  @apply rounded-3xl backdrop-blur-xl;
+}
+
+/* Scan line effect for retro-futuristic feel */
+.scan-lines {
+  @apply relative;
+}
+
+.scan-lines::before {
+  content: '';
+  @apply absolute inset-0 pointer-events-none z-10;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 0.5%,
+    transparent 1%
+  );
+}
+
+/* Holographic effect for cards */
+.holographic {
+  @apply relative overflow-hidden;
+}
+
+.holographic::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-tr from-primary/10 via-secondary/10 to-transparent opacity-50 pointer-events-none;
+  background-size: 200% 200%;
+  animation: shimmer 5s ease-in-out infinite alternate;
+}
+
+/* Spatial depth effect */
+.spatial-layer-1 {
+  @apply z-10 translate-z-0;
+}
+
+.spatial-layer-2 {
+  @apply z-20 translate-z-4;
+}
+
+.spatial-layer-3 {
+  @apply z-30 translate-z-8;
 }
