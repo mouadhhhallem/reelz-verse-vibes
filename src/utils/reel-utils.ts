@@ -77,22 +77,22 @@ export const createReelObject = (
  * Simulates upload progress with a smooth animation
  */
 export const simulateUploadProgress = (
-  setProgress: (value: number) => void
+  setProgress: React.Dispatch<React.SetStateAction<number>>
 ): ReturnType<typeof setInterval> => {
-  const interval = setInterval(() => {
-    setProgress((prevProgress: number) => {
+  const progressInterval = setInterval(() => {
+    setProgress(prevProgress => {
       const increment = Math.random() * 15 + 5; // Random increment between 5-20%
       const newProgress = prevProgress + increment;
       
       if (newProgress >= 95) {
-        clearInterval(interval);
+        clearInterval(progressInterval);
         return 95; // Hold at 95% until processing completes
       }
       return newProgress;
     });
   }, 300);
   
-  return interval;
+  return progressInterval;
 };
 
 /**
