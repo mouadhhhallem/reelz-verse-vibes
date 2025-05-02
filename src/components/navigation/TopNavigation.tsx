@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Settings, Moon, Sun } from 'lucide-react';
@@ -9,22 +9,38 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { useTheme } from 'next-themes';
 
 export const TopNavigation: React.FC = () => {
   const { viewMode, toggleViewMode } = useViewMode();
   const { user, isAuthenticated } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { 
     notifications, 
     markAsRead, 
     markAllAsRead, 
     clearAll 
   } = useNotifications();
+
+  // Load hologram preference from localStorage
+  const [hologramEnabled, setHologramEnabled] = useState(true);
   
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  
+  useEffect(() => {
+    const storedHologramPreference = localStorage.getItem('hologramEnabled');
+    if (storedHologramPreference !== null) {
+      setHologramEnabled(storedHologramPreference === 'true');
+    }
+    
+    // Apply hologram class
+    if (hologramEnabled) {
+      document.body.classList.add('hologram-enabled');
+    } else {
+      document.body.classList.remove('hologram-enabled');
+    }
+  }, []);
+
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
-    document.documentElement.classList.toggle('light');
   };
 
   return (
@@ -39,7 +55,7 @@ export const TopNavigation: React.FC = () => {
           {/* Mobile Logo - Visible on mobile only */}
           <div className="md:hidden">
             <Link to="/" className="flex items-center">
-              <span className="text-xl font-bold bg-gradient-to-r from-primary to-reelz-teal bg-clip-text text-transparent">Reelz</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-reelz-teal bg-clip-text text-transparent">Desebere</span>
             </Link>
           </div>
 
@@ -74,6 +90,18 @@ export const TopNavigation: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* App Name */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="hidden md:block"
+          >
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-reelz-teal bg-clip-text text-transparent">
+              Desebere
+            </span>
+          </motion.div>
+
           <Link to="/search">
             <Button 
               variant="ghost" 

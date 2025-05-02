@@ -14,7 +14,16 @@ export const Layout: React.FC = () => {
   const { viewMode } = useViewMode();
   const { mood, getNebulaEffect } = useMoodTheme();
   const [starryNight, setStarryNight] = useState<{ x: number; y: number; size: number; opacity: number }[]>([]);
+  const [hologramEnabled, setHologramEnabled] = useState(true);
   
+  // Load hologram preference from localStorage
+  useEffect(() => {
+    const storedHologramPreference = localStorage.getItem('hologramEnabled');
+    if (storedHologramPreference !== null) {
+      setHologramEnabled(storedHologramPreference === 'true');
+    }
+  }, []);
+
   // Generate starry background effect
   useEffect(() => {
     const generateStars = () => {
@@ -39,6 +48,15 @@ export const Layout: React.FC = () => {
     return () => window.removeEventListener('resize', generateStars);
   }, []);
 
+  // Apply hologram class
+  useEffect(() => {
+    if (hologramEnabled) {
+      document.body.classList.add('hologram-enabled');
+    } else {
+      document.body.classList.remove('hologram-enabled');
+    }
+  }, [hologramEnabled]);
+
   return (
     <div className="relative min-h-screen w-full flex overflow-hidden">
       {/* Cosmic Background Layer */}
@@ -53,7 +71,7 @@ export const Layout: React.FC = () => {
         {starryNight.map((star, i) => (
           <motion.div
             key={i}
-            className="absolute rounded-full bg-white"
+            className="absolute rounded-full bg-white star"
             style={{
               left: `${star.x}%`,
               top: `${star.y}%`,
@@ -62,11 +80,11 @@ export const Layout: React.FC = () => {
               opacity: star.opacity
             }}
             animate={{
-              opacity: [star.opacity, star.opacity * 1.5, star.opacity],
+              opacity: hologramEnabled ? [star.opacity, star.opacity * 1.5, star.opacity] : star.opacity,
             }}
             transition={{
               duration: 2 + Math.random() * 3,
-              repeat: Infinity,
+              repeat: hologramEnabled ? Infinity : 0,
               repeatType: "reverse"
             }}
           />
@@ -78,13 +96,13 @@ export const Layout: React.FC = () => {
         
         {/* Aurora glow */}
         <motion.div
-          className="absolute bottom-0 left-0 right-0 h-[30vh] bg-gradient-to-t from-primary/10 to-transparent"
+          className="absolute bottom-0 left-0 right-0 h-[30vh] bg-gradient-to-t from-primary/10 to-transparent aurora-wave"
           animate={{
-            opacity: [0.3, 0.6, 0.3]
+            opacity: hologramEnabled ? [0.3, 0.6, 0.3] : 0.3
           }}
           transition={{
             duration: 10,
-            repeat: Infinity,
+            repeat: hologramEnabled ? Infinity : 0,
             repeatType: "reverse"
           }}
         />

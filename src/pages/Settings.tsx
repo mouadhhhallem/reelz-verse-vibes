@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useViewMode } from '@/contexts/ViewModeContext';
+import { useTheme } from 'next-themes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -19,14 +21,17 @@ import {
   Languages,
   Shield,
   LogOut,
-  Save
+  Save,
+  Eye
 } from 'lucide-react';
 
 const Settings = () => {
   const { user, isAuthenticated, updateUser, logout } = useAuth();
   const { viewMode, toggleViewMode } = useViewMode();
+  const { theme, setTheme } = useTheme();
   
   const [activeTab, setActiveTab] = useState('account');
+  const [hologramEnabled, setHologramEnabled] = useState(true);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     username: user?.username || '',
@@ -34,7 +39,7 @@ const Settings = () => {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    language: 'english',
+    language: localStorage.getItem('appLanguage') || 'english',
     notificationsEnabled: user?.notificationsEnabled || false,
     emailNotifications: true,
     pushNotifications: true,
@@ -42,6 +47,31 @@ const Settings = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Load hologram preference from localStorage
+  useEffect(() => {
+    const storedHologramPreference = localStorage.getItem('hologramEnabled');
+    if (storedHologramPreference !== null) {
+      setHologramEnabled(storedHologramPreference === 'true');
+    }
+    
+    // Apply hologram class based on preference
+    if (hologramEnabled) {
+      document.body.classList.add('hologram-enabled');
+    } else {
+      document.body.classList.remove('hologram-enabled');
+    }
+  }, []);
+  
+  // Update hologram class whenever the preference changes
+  useEffect(() => {
+    if (hologramEnabled) {
+      document.body.classList.add('hologram-enabled');
+    } else {
+      document.body.classList.remove('hologram-enabled');
+    }
+    localStorage.setItem('hologramEnabled', hologramEnabled.toString());
+  }, [hologramEnabled]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -64,6 +94,9 @@ const Settings = () => {
         username: formData.username,
         notificationsEnabled: formData.notificationsEnabled
       });
+      
+      // Save language preference to localStorage
+      localStorage.setItem('appLanguage', formData.language);
       
       toast.success('Settings saved successfully');
     }
@@ -93,6 +126,34 @@ const Settings = () => {
     }));
     
     setIsSubmitting(false);
+  };
+  
+  const toggleHologramBackground = () => {
+    setHologramEnabled(prev => !prev);
+  };
+
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      setIsSubmitting(true);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success('Account deletion request submitted');
+      setIsSubmitting(false);
+      
+      // Logout after account deletion
+      setTimeout(() => {
+        logout();
+      }, 1500);
+    }
+  };
+  
+  // Handle data export
+  const handleExportData = () => {
+    // Simulate data export
+    toast.success('Your data is being prepared for export. You will receive a download link shortly.');
   };
   
   if (!isAuthenticated || !user) {
@@ -285,8 +346,8 @@ const Settings = () => {
                     <div className="flex items-center space-x-2">
                       <Sun size={16} />
                       <Switch
-                        checked={viewMode === 'bubble'}
-                        onCheckedChange={toggleViewMode}
+                        checked={theme === "dark"}
+                        onCheckedChange={() => setTheme(theme === "dark" ? "light" : "dark")}
                       />
                       <Moon size={16} />
                     </div>
@@ -296,12 +357,57 @@ const Settings = () => {
                   
                   <div className="flex items-center justify-between">
                     <div>
+                      <p className="font-medium">Bubble View</p>
+                      <p className="text-sm text-muted-foreground">
+                        Toggle between classic and bubble view modes
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={viewMode === 'bubble'}
+                        onCheckedChange={toggleViewMode}
+                      />
+                    </div>
+                  </div>
+                  
+                  <Separator />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Hologram Background</p>
+                      <p className="text-sm text-muted-foreground">
+                        Toggle animated holographic background effects
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={hologramEnabled}
+                        onCheckedChange={toggleHologramBackground}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
                       <p className="font-medium">Reduced Motion</p>
                       <p className="text-sm text-muted-foreground">
                         Minimize animations for accessibility
                       </p>
                     </div>
-                    <Switch />
+                    <Switch 
+                      checked={document.body.classList.contains('reduce-motion')}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          document.body.classList.add('reduce-motion');
+                          localStorage.setItem('reduceMotion', 'true');
+                        } else {
+                          document.body.classList.remove('reduce-motion');
+                          localStorage.setItem('reduceMotion', 'false');
+                        }
+                      }}
+                    />
                   </div>
                   
                   <Separator />
@@ -313,7 +419,18 @@ const Settings = () => {
                         Increase contrast for better visibility
                       </p>
                     </div>
-                    <Switch />
+                    <Switch 
+                      checked={document.body.classList.contains('high-contrast')}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          document.body.classList.add('high-contrast');
+                          localStorage.setItem('highContrast', 'true');
+                        } else {
+                          document.body.classList.remove('high-contrast');
+                          localStorage.setItem('highContrast', 'false');
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -442,6 +559,18 @@ const Settings = () => {
                       className="bg-white/5"
                     />
                   </div>
+
+                  <Separator className="my-2" />
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Two-Factor Authentication</p>
+                      <p className="text-sm text-muted-foreground">
+                        Add an extra layer of security to your account
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
                 </div>
                 
                 <div className="flex justify-end">
@@ -563,6 +692,27 @@ const Settings = () => {
                       </p>
                     </div>
                     <Switch defaultChecked />
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-4 pt-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleExportData}
+                      className="w-full"
+                    >
+                      <Eye size={16} className="mr-2" />
+                      Export My Data
+                    </Button>
+
+                    <Button 
+                      variant="destructive" 
+                      onClick={handleDeleteAccount}
+                      className="w-full"
+                    >
+                      Delete My Account
+                    </Button>
                   </div>
                 </div>
                 

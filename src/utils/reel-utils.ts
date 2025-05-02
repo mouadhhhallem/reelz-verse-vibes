@@ -25,6 +25,10 @@ export const processVideoSource = async (
         thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
         videoSrc = videoUrl;
       }
+    } else if (videoUrl.match(/\.(mp4|webm|ogg)$/i)) {
+      // Handle direct video URLs
+      thumbnailUrl = '/placeholder.svg'; // Placeholder thumbnail for direct video links
+      videoSrc = videoUrl;
     } else {
       // For other platforms, use a generic thumbnail
       thumbnailUrl = '/placeholder.svg';
@@ -102,6 +106,25 @@ export const validateReelForm = (videoFile: File | null, videoUrl: string): bool
   if (!videoFile && !videoUrl) {
     toast.error("Please upload a video or provide a valid URL");
     return false;
+  }
+  
+  // Validate video URL format
+  if (videoUrl && !videoFile) {
+    try {
+      new URL(videoUrl);
+      // Check if it's a YouTube URL
+      if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+        // Valid YouTube URL
+      } else if (videoUrl.match(/\.(mp4|webm|ogg)$/i)) {
+        // Valid direct video URL
+      } else {
+        toast.error("Please provide a valid YouTube or direct video URL");
+        return false;
+      }
+    } catch {
+      toast.error("Please enter a valid URL");
+      return false;
+    }
   }
   
   return true;
