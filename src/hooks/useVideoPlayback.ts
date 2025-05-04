@@ -63,11 +63,14 @@ export const useVideoPlayback = (threshold = 0.7) => {
         if (isIntersecting && !hasError) {
           if (currentVideo.tagName === 'VIDEO') {
             const videoElement = currentVideo as HTMLVideoElement;
-            videoElement.play().catch(error => {
-              console.error('Autoplay failed:', error);
-              setHasError(true);
-            });
-            setIsPlaying(true);
+            // Only attempt to play if video has a valid source
+            if (videoElement.src) {
+              videoElement.play().catch(error => {
+                console.error('Autoplay failed:', error);
+                setHasError(true);
+              });
+              setIsPlaying(true);
+            }
           }
         } else {
           if (currentVideo.tagName === 'VIDEO') {

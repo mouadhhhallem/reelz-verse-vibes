@@ -59,25 +59,53 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         return;
       }
       
-      if (!isYouTube && (videoUrl.startsWith('local:') || videoUrl.includes('videoId'))) {
+      // Check if it's a local video (stored in localStorage)
+      if (!isYouTube && videoUrl.startsWith('local:')) {
         try {
           console.log("Getting local video source");
-          const src = getActualVideoSource(videoUrl);
-          console.log("Local video source obtained:", src ? "Success" : "Failed");
+          const videoId = videoUrl.split(':')[1];
+          console.log("Video ID for local video:", videoId);
           
-          if (!src) {
+          if (!videoId) {
+            console.error("Invalid local video URL format");
             setError(true);
             setHasError(true);
-          } else {
-            setActualVideoSrc(src);
-            setError(false);
+            return;
           }
+          
+          // Get video data from localStorage
+          const storedVideos = localStorage.getItem('reelz_videos');
+          if (!storedVideos) {
+            console.error("No videos found in localStorage");
+            setError(true);
+            setHasError(true);
+            return;
+          }
+          
+          const videos = JSON.parse(storedVideos);
+          const videoData = videos[videoId]?.data;
+          
+          if (!videoData) {
+            console.error(`Video data not found for ID: ${videoId}`);
+            setError(true);
+            setHasError(true);
+            return;
+          }
+          
+          console.log("Local video data retrieved successfully");
+          setActualVideoSrc(videoData);
+          setError(false);
         } catch (err) {
-          console.error("Error getting video source:", err);
+          console.error("Error getting local video source:", err);
           setError(true);
           setHasError(true);
         }
+      } else if (videoUrl.indexOf('data:') === 0) {
+        // It's already a data URL
+        setActualVideoSrc(videoUrl);
+        setError(false);
       } else {
+        // Regular URL
         setActualVideoSrc(videoUrl);
       }
     };

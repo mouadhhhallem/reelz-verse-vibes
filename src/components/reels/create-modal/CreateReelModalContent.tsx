@@ -27,6 +27,10 @@ interface CreateReelModalContentProps {
   onTagsChange: (tags: string[]) => void;
   mood: ReelMood;
   onMoodChange: (mood: ReelMood) => void;
+  clipStart: number;
+  onClipStartChange: (value: number) => void;
+  clipDuration: number | null;
+  onClipDurationChange: (value: number | null) => void;
   isUploading: boolean;
   uploadProgress: number;
   onSubmit: () => void;
@@ -48,6 +52,10 @@ export const CreateReelModalContent: React.FC<CreateReelModalContentProps> = ({
   onTagsChange,
   mood,
   onMoodChange,
+  clipStart,
+  onClipStartChange,
+  clipDuration,
+  onClipDurationChange,
   isUploading,
   uploadProgress,
   onSubmit,
@@ -123,7 +131,11 @@ export const CreateReelModalContent: React.FC<CreateReelModalContentProps> = ({
             {(videoFile || videoUrl) && (
               <ClipControls 
                 url={videoFile ? URL.createObjectURL(videoFile) : videoUrl} 
-                type={activeTab} 
+                type={activeTab}
+                clipStart={clipStart}
+                onClipStartChange={onClipStartChange}
+                clipDuration={clipDuration}
+                onClipDurationChange={onClipDurationChange} 
               />
             )}
           </div>

@@ -59,6 +59,15 @@ export const useReelUpload = () => {
         videoId
       );
       
+      // Add clip start and duration if they exist
+      if (formState.clipStart > 0) {
+        newReel.clipStart = formState.clipStart;
+      }
+      
+      if (formState.clipDuration !== null) {
+        newReel.clipDuration = formState.clipDuration;
+      }
+      
       // Complete the upload
       setTimeout(() => {
         setUploadProgress(100);
