@@ -1,5 +1,5 @@
 
-import { Reel } from '@/types';
+import { Reel, ReelMood } from '@/types';
 
 export const getMoodGradient = (reel: Reel | null) => {
   if (!reel) return 'bg-gradient-to-br from-gray-500 to-gray-700';

@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ReelMood } from '@/hooks/useReelUpload';
+import { ReelMood } from '@/types';
 
 interface MoodBackgroundProps {
   mood: ReelMood | string;
@@ -19,6 +19,7 @@ export const MoodBackground: React.FC<MoodBackgroundProps> = ({
     scale: number;
     rotation: number;
     duration: number;
+    emoji: string;
   }>>([]);
 
   // Generate mood-based emojis

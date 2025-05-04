@@ -42,10 +42,11 @@ export interface Reel {
   comments: number;
   createdAt: string;
   tags: string[];
-  mood?: "energetic" | "calm" | "happy" | "sad" | "neutral";
+  mood?: "energetic" | "calm" | "happy" | "sad" | "cosmic" | "nebula" | "aurora" | "neutral";
   clipStart?: number;
   clipDuration?: number;
   isFollowing?: boolean;
+  isLocalVideo?: boolean;
 }
 
 export interface Comment {
@@ -70,3 +71,5 @@ export interface Category {
   icon: string;
   color: string;
 }
+
+export type ReelMood = "energetic" | "calm" | "happy" | "sad" | "cosmic" | "nebula" | "aurora" | "neutral";
