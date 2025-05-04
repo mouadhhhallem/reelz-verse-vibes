@@ -1,10 +1,10 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVideoPlayback } from '@/hooks/useVideoPlayback';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, Loader } from 'lucide-react';
 import { formatDuration } from '@/lib/video-utils';
+import { getActualVideoSource } from '@/utils/reel-utils';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -40,6 +40,24 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const [showControls, setShowControls] = useState(true);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [actualVideoSrc, setActualVideoSrc] = useState<string>(videoUrl);
+  const [error, setError] = useState<boolean>(false);
+
+  // Get the actual video source for local videos
+  useEffect(() => {
+    if (!isYouTube && (videoUrl.startsWith('local:') || videoUrl.includes('videoId'))) {
+      try {
+        const src = getActualVideoSource(videoUrl);
+        setActualVideoSrc(src);
+        setError(!src);
+      } catch (err) {
+        console.error("Error getting video source:", err);
+        setError(true);
+      }
+    } else {
+      setActualVideoSrc(videoUrl);
+    }
+  }, [videoUrl, isYouTube]);
 
   // Preload next video when component mounts
   React.useEffect(() => {
@@ -77,6 +95,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, [isPlaying]);
 
+  const handleVideoError = () => {
+    console.error("Error loading video:", videoUrl);
+    setError(true);
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -93,25 +116,34 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         ></iframe>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center h-full bg-black/30 backdrop-blur-sm">
+          <div className="text-6xl mb-6">😕</div>
+          <p className="text-white text-xl mb-4 text-center">Unable to load video</p>
+          <p className="text-white/70 text-center max-w-md">
+            The video might be unavailable or in an unsupported format.
+          </p>
+        </div>
       ) : (
         <video
           ref={videoRef as React.RefObject<HTMLVideoElement>}
-          src={videoUrl}
+          src={actualVideoSrc}
           poster={thumbnailUrl}
           controls={false}
           loop
           playsInline
           preload="auto"
           className="w-full h-full object-cover"
+          onError={handleVideoError}
         ></video>
       )}
       
-      {/* Video Overlay */}
+      {/* Video Overlay with enhanced mood effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/70 pointer-events-none"></div>
       
       {/* Buffering Indicator */}
       <AnimatePresence>
-        {isBuffering && (
+        {isBuffering && !error && (
           <motion.div 
             className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -136,7 +168,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       {/* Play/Pause Overlay */}
       <AnimatePresence>
-        {!isPlaying && !isYouTube && (
+        {!isPlaying && !isYouTube && !error && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

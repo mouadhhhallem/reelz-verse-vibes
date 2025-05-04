@@ -1,7 +1,75 @@
-
 import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/video-utils";
 import { ModalTab, ReelMood } from "@/hooks/useReelUpload";
+import { nanoid } from "nanoid";
+
+// Storage key for videos in localStorage
+const VIDEO_STORAGE_KEY = 'reelz_videos';
+
+/**
+ * Save video to localStorage
+ */
+export const saveVideoToStorage = async (videoFile: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(videoFile);
+      reader.onload = () => {
+        const videoId = `video-${nanoid(8)}`;
+        const videos = getStoredVideos();
+        
+        // Store video with metadata
+        videos[videoId] = {
+          id: videoId,
+          name: videoFile.name,
+          type: videoFile.type,
+          size: videoFile.size,
+          data: reader.result,
+          createdAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem(VIDEO_STORAGE_KEY, JSON.stringify(videos));
+        
+        // Dispatch event to notify components that a new video was added
+        window.dispatchEvent(new CustomEvent('reel-added', { detail: { videoId } }));
+        
+        resolve(videoId);
+      };
+      
+      reader.onerror = (error) => {
+        reject(error);
+      };
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+/**
+ * Get video from localStorage by ID
+ */
+export const getVideoFromStorage = (videoId: string): string | null => {
+  try {
+    const videos = getStoredVideos();
+    return videos[videoId]?.data || null;
+  } catch (error) {
+    console.error('Error retrieving video:', error);
+    return null;
+  }
+};
+
+/**
+ * Get all stored videos
+ */
+export const getStoredVideos = () => {
+  try {
+    const videos = localStorage.getItem(VIDEO_STORAGE_KEY);
+    return videos ? JSON.parse(videos) : {};
+  } catch (error) {
+    console.error('Error parsing stored videos:', error);
+    return {};
+  }
+};
 
 /**
  * Processes a video file or URL and returns thumbnail and source information
@@ -10,19 +78,31 @@ export const processVideoSource = async (
   videoFile: File | null, 
   videoUrl: string, 
   activeTab: ModalTab
-): Promise<{thumbnailUrl: string, videoSrc: string}> => {
+): Promise<{thumbnailUrl: string, videoSrc: string, videoId?: string}> => {
   let thumbnailUrl = "";
   let videoSrc = "";
+  let videoId = undefined;
   
   if (videoFile) {
-    thumbnailUrl = await generateVideoThumbnail(videoFile);
-    videoSrc = URL.createObjectURL(videoFile);
+    try {
+      thumbnailUrl = await generateVideoThumbnail(videoFile);
+      
+      // Save video to localStorage and get its ID
+      videoId = await saveVideoToStorage(videoFile);
+      
+      // Set the source as a special URL format that our system recognizes
+      videoSrc = `local:${videoId}`;
+    } catch (error) {
+      console.error('Error processing video file:', error);
+      toast.error('Failed to process video file');
+      throw error;
+    }
   } else if (videoUrl) {
     // For YouTube links, we can get the thumbnail directly
     if (activeTab === 'youtube') {
-      const videoId = new URL(videoUrl).searchParams.get('v');
-      if (videoId) {
-        thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      const youtubeId = new URL(videoUrl).searchParams.get('v');
+      if (youtubeId) {
+        thumbnailUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
         videoSrc = videoUrl;
       }
     } else if (videoUrl.match(/\.(mp4|webm|ogg)$/i)) {
@@ -36,7 +116,7 @@ export const processVideoSource = async (
     }
   }
 
-  return { thumbnailUrl, videoSrc };
+  return { thumbnailUrl, videoSrc, videoId };
 };
 
 /**
@@ -51,17 +131,20 @@ export const createReelObject = (
   description: string,
   tags: string[],
   mood: ReelMood,
-  user: any
+  user: any,
+  videoId?: string
 ) => {
   return {
     id: `reel-${Date.now()}`,
     title: title || `My Reel ${new Date().toLocaleDateString()}`,
     description: description || "Check out my latest reel!",
     videoUrl: videoSrc,
+    videoId: videoId, // Store the local video ID if it exists
     thumbnailUrl,
     isYouTube: activeTab === 'youtube',
     youtubeId: activeTab === 'youtube' ? new URL(videoUrl).searchParams.get('v') || '' : '',
     sourceType: activeTab,
+    isLocalVideo: videoSrc.startsWith('local:'),
     tags: tags.length > 0 ? tags : [mood],
     mood,
     likes: 0,
@@ -128,4 +211,16 @@ export const validateReelForm = (videoFile: File | null, videoUrl: string): bool
   }
   
   return true;
+};
+
+/**
+ * Get the actual video source URL (handles local storage videos)
+ */
+export const getActualVideoSource = (videoUrl: string): string => {
+  if (videoUrl.startsWith('local:')) {
+    const videoId = videoUrl.split(':')[1];
+    const videoData = getVideoFromStorage(videoId);
+    return videoData || '';
+  }
+  return videoUrl;
 };

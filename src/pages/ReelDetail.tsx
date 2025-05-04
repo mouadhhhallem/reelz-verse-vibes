@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
+import { useMoodTheme } from '@/components/ui/mood-theme-provider';
 
 // Import refactored components
 import VideoPlayer from '@/components/reel-detail/VideoPlayer';
@@ -14,6 +16,7 @@ import FloatingReactions from '@/components/reel-detail/FloatingReactions';
 import ReelDescription from '@/components/reel-detail/ReelDescription';
 import CommentSection from '@/components/reel-detail/CommentSection';
 import BackButton from '@/components/reel-detail/BackButton';
+import MoodBackground from '@/components/effects/MoodBackground';
 
 // Import custom hooks
 import { useReelView } from '@/hooks/useReelView';
@@ -23,6 +26,7 @@ const ReelDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setMood } = useMoodTheme();
   const { 
     showControls, 
     showEmojis, 
@@ -51,6 +55,18 @@ const ReelDetail: React.FC = () => {
     queryFn: () => id ? apiClient.getComments(id) : [],
     enabled: !!id,
   });
+
+  // Apply the reel's mood to the global theme when viewing
+  useEffect(() => {
+    if (reel?.mood) {
+      setMood(reel.mood as any);
+      
+      // Reset mood when leaving the page
+      return () => {
+        setMood('cosmic');
+      };
+    }
+  }, [reel, setMood]);
   
   const isFavorited = favorites?.some(fav => fav.id === id);
   
@@ -99,10 +115,13 @@ const ReelDetail: React.FC = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      {/* Video Section */}
+      {/* Video Section with enhanced mood effects */}
       <div 
         className={`${getMoodGradient(reel)} relative h-[100vh] sm:h-[80vh] max-h-[90vh] w-full overflow-hidden`}
       >
+        {/* Mood background effect */}
+        <MoodBackground mood={reel.mood} intensity={0.7} />
+        
         <VideoPlayer 
           videoUrl={reel.videoUrl}
           thumbnailUrl={reel.thumbnailUrl}
@@ -134,8 +153,8 @@ const ReelDetail: React.FC = () => {
         />
       </div>
       
-      {/* Description and Comments Section */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Description and Comments Section with mood-themed styling */}
+      <div className={`container mx-auto px-4 py-8 mood-${reel.mood}`}>
         <div className="max-w-3xl mx-auto">
           <ReelDescription 
             title={reel.title}

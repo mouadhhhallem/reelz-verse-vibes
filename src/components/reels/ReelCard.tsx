@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageSquare, Share, ArrowUp, ArrowDown, ThumbsUp, ThumbsDown, Trash, Edit } from 'lucide-react';
@@ -12,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getMoodGradient } from '@/utils/mood-utils';
+import { getActualVideoSource } from '@/utils/reel-utils';
 
 interface ReelCardProps {
   reel: Reel;
@@ -33,18 +34,33 @@ export const ReelCard: React.FC<ReelCardProps> = ({
   const [pollVote, setPollVote] = useState<'up' | 'down' | null>(null);
   const [showReactions, setShowReactions] = useState(false);
   const [emoji, setEmoji] = useState<string | null>(null);
+  const [videoError, setVideoError] = useState(false);
+  const [actualVideoSrc, setActualVideoSrc] = useState('');
   const queryClient = useQueryClient();
   
   const selected = isSelected(reel.id);
   
-  // Get mood-based background gradient
-  const getMoodGradient = () => {
-    switch(reel.mood) {
-      case 'energetic': return 'bg-gradient-to-br from-orange-500 to-red-500';
-      case 'calm': return 'bg-gradient-to-br from-blue-400 to-teal-500';
-      case 'happy': return 'bg-gradient-to-br from-yellow-400 to-amber-500';
-      case 'sad': return 'bg-gradient-to-br from-indigo-500 to-purple-600';
-      default: return 'bg-gradient-to-br from-gray-500 to-gray-700';
+  // Get the actual video URL (resolving local storage references)
+  useEffect(() => {
+    if (reel.isLocalVideo || reel.videoUrl.startsWith('local:')) {
+      const src = getActualVideoSource(reel.videoUrl);
+      setActualVideoSrc(src);
+    } else {
+      setActualVideoSrc(reel.videoUrl);
+    }
+  }, [reel.videoUrl, reel.isLocalVideo]);
+  
+  // Get mood emoji based on the reel's mood
+  const getMoodEmoji = () => {
+    switch (reel.mood) {
+      case 'energetic': return '⚡';
+      case 'calm': return '🧘';
+      case 'happy': return '😊';
+      case 'sad': return '😢';
+      case 'cosmic': return '🌌';
+      case 'nebula': return '🌠';
+      case 'aurora': return '✨';
+      default: return '😎';
     }
   };
   
@@ -127,6 +143,11 @@ export const ReelCard: React.FC<ReelCardProps> = ({
     }
   };
   
+  const handleVideoError = () => {
+    console.error("Error loading video for reel:", reel.id);
+    setVideoError(true);
+  };
+  
   const handleSwipe = (direction: 'up' | 'down') => {
     const container = document.querySelector('.reel-feed');
     if (!container) return;
@@ -178,7 +199,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
       ref={containerRef}
       className={cn(
         "reel-card relative aspect-[9/16] w-full h-full max-h-[90vh] mx-auto overflow-hidden",
-        getMoodGradient()
+        getMoodGradient(reel)
       )}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -187,6 +208,37 @@ export const ReelCard: React.FC<ReelCardProps> = ({
       onHoverStart={() => setShowControls(true)}
       onHoverEnd={() => setShowControls(false)}
     >
+      {/* Mood 3D Emojis floating in background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={`mood-emoji-${i}`}
+            className="absolute text-5xl sm:text-6xl md:text-7xl opacity-30 filter blur-[1px]"
+            initial={{
+              x: `${Math.random() * 100}%`,
+              y: `${Math.random() * 100}%`,
+              scale: 0.5 + Math.random() * 0.5,
+              rotate: Math.random() * 360
+            }}
+            animate={{
+              x: `${Math.random() * 100}%`,
+              y: `${Math.random() * 100}%`,
+              rotate: Math.random() * 360,
+              scale: [0.7, 0.9, 0.7],
+              opacity: [0.2, 0.4, 0.2],
+            }}
+            transition={{
+              duration: 10 + Math.random() * 20,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut"
+            }}
+          >
+            {getMoodEmoji()}
+          </motion.div>
+        ))}
+      </div>
+
       {isSelectionMode && (
         <div className="absolute top-4 left-4 z-30">
           <Checkbox 
@@ -201,26 +253,42 @@ export const ReelCard: React.FC<ReelCardProps> = ({
         {reel.isYouTube ? (
           <iframe
             ref={videoRef as React.RefObject<HTMLIFrameElement>}
-            src={`${reel.videoUrl}?autoplay=${isVisible ? 1 : 0}&mute=1&controls=0&modestbranding=1&loop=1&playlist=${reel.youtubeId}`}
+            src={`${actualVideoSrc}?autoplay=${isVisible ? 1 : 0}&mute=1&controls=0&modestbranding=1&loop=1&playlist=${reel.youtubeId}`}
             title={reel.title}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           ></iframe>
+        ) : videoError ? (
+          <div className="flex flex-col items-center justify-center h-full bg-black/30 backdrop-blur-sm">
+            <div className="text-5xl mb-4">😕</div>
+            <p className="text-white text-center px-4">
+              Unable to load video.
+              <br />
+              <span className="text-sm opacity-70">The video might be unavailable or in an unsupported format.</span>
+            </p>
+          </div>
         ) : (
           <video
             ref={videoRef as React.RefObject<HTMLVideoElement>}
-            src={reel.videoUrl}
-            poster={reel.thumbnailUrl}
+            src={actualVideoSrc}
+            poster={reel.thumbnailUrl || '/placeholder.svg'}
             loop
             playsInline
             muted
             className="w-full h-full object-cover"
+            onError={handleVideoError}
           ></video>
         )}
         
-        {/* Advanced video overlay with gradient */}
-        <div className="video-overlay bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
+        {/* Enhanced mood-based gradient overlay */}
+        <div className={cn(
+          "absolute inset-0 mix-blend-overlay opacity-40",
+          `bg-gradient-to-b from-${reel.mood || 'neutral'}-500/30 via-transparent to-${reel.mood || 'neutral'}-700/50`
+        )}></div>
+        
+        {/* Standard video overlay with gradient */}
+        <div className="video-overlay absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80"></div>
         
         {/* Parallax effect on text */}
         <motion.div 
@@ -229,7 +297,7 @@ export const ReelCard: React.FC<ReelCardProps> = ({
           transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
         />
         
-        {!reel.isYouTube && !isPlaying && isVisible && (
+        {!reel.isYouTube && !isPlaying && isVisible && !videoError && (
           <div className="absolute inset-0 flex items-center justify-center z-10">
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}

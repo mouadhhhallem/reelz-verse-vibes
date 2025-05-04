@@ -11,7 +11,7 @@ initializeThemePreferences();
 
 // Update favicon dynamically
 const setFavicon = () => {
-  const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+  const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement || document.createElement('link');
   link.type = 'image/png';
   link.rel = 'shortcut icon';
   link.href = '/lovable-uploads/bca827df-e2b6-4764-8e29-be1293c605af.png';
