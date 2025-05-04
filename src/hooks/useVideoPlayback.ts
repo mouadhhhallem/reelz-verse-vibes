@@ -12,6 +12,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
   const [volume, setVolume] = useState(0.5);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [hasError, setHasError] = useState(false);
   const preloadTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Preload the next video when current video is 70% complete
@@ -30,7 +31,9 @@ export const useVideoPlayback = (threshold = 0.7) => {
     
     // Remove after 30 seconds if not used
     preloadTimerRef.current = setTimeout(() => {
-      document.body.removeChild(preloadVideo);
+      if (document.body.contains(preloadVideo)) {
+        document.body.removeChild(preloadVideo);
+      }
     }, 30000);
     
     document.body.appendChild(preloadVideo);
@@ -57,11 +60,12 @@ export const useVideoPlayback = (threshold = 0.7) => {
         const isIntersecting = entry.isIntersecting;
         setIsVisible(isIntersecting);
 
-        if (isIntersecting) {
+        if (isIntersecting && !hasError) {
           if (currentVideo.tagName === 'VIDEO') {
             const videoElement = currentVideo as HTMLVideoElement;
             videoElement.play().catch(error => {
               console.error('Autoplay failed:', error);
+              setHasError(true);
             });
             setIsPlaying(true);
           }
@@ -91,6 +95,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
       
       const handleLoadedMetadata = () => {
         setDuration(videoElement.duration);
+        setHasError(false); // Reset error state when video loads successfully
       };
       
       const handleWaiting = () => {
@@ -99,12 +104,20 @@ export const useVideoPlayback = (threshold = 0.7) => {
       
       const handlePlaying = () => {
         setIsBuffering(false);
+        setHasError(false); // Reset error state when video starts playing
+      };
+      
+      const handleError = (e: Event) => {
+        console.error('Video playback error:', e);
+        setHasError(true);
+        setIsPlaying(false);
       };
       
       videoElement.addEventListener('timeupdate', updateProgress);
       videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
       videoElement.addEventListener('waiting', handleWaiting);
       videoElement.addEventListener('playing', handlePlaying);
+      videoElement.addEventListener('error', handleError);
       
       // If video is 70% complete, preload next video if available
       videoElement.addEventListener('timeupdate', () => {
@@ -116,33 +129,39 @@ export const useVideoPlayback = (threshold = 0.7) => {
           }
         }
       });
+      
+      // Return cleanup function
+      return () => {
+        if (currentContainer) {
+          observer.unobserve(currentContainer);
+        }
+        videoElement.removeEventListener('timeupdate', updateProgress);
+        videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        videoElement.removeEventListener('waiting', handleWaiting);
+        videoElement.removeEventListener('playing', handlePlaying);
+        videoElement.removeEventListener('error', handleError);
+        videoElement.removeEventListener('timeupdate', () => {});
+      };
     }
 
     return () => {
       if (currentContainer) {
         observer.unobserve(currentContainer);
       }
-      if (currentVideo?.tagName === 'VIDEO') {
-        const videoElement = currentVideo as HTMLVideoElement;
-        videoElement.pause();
-        videoElement.removeEventListener('timeupdate', () => {});
-        videoElement.removeEventListener('loadedmetadata', () => {});
-        videoElement.removeEventListener('waiting', () => {});
-        videoElement.removeEventListener('playing', () => {});
-      }
     };
-  }, [threshold, preloadNextVideo]);
+  }, [threshold, preloadNextVideo, hasError]);
 
   const togglePlayback = () => {
     const currentVideo = videoRef.current;
     
-    if (!currentVideo || currentVideo.tagName !== 'VIDEO') return;
+    if (!currentVideo || currentVideo.tagName !== 'VIDEO' || hasError) return;
     
     const videoElement = currentVideo as HTMLVideoElement;
     
     if (videoElement.paused) {
       videoElement.play().catch(error => {
         console.error('Play failed:', error);
+        setHasError(true);
       });
       setIsPlaying(true);
     } else {
@@ -209,10 +228,12 @@ export const useVideoPlayback = (threshold = 0.7) => {
     volume,
     duration,
     currentTime,
+    hasError,
     togglePlayback,
     toggleMute,
     seekTo,
     changeVolume,
-    preloadNextVideo
+    preloadNextVideo,
+    setHasError
   };
 };

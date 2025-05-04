@@ -7,8 +7,8 @@ import { toast } from "sonner";
 import { useMoodTheme } from "@/components/ui/mood-theme-provider";
 import { useReelForm } from "./useReelForm";
 import { processVideoSource, createReelObject, simulateUploadProgress, validateReelForm } from "@/utils/reel-utils";
+import { ReelMood } from "@/types";
 
-export type ReelMood = "energetic" | "calm" | "happy" | "sad" | "neutral";
 export type ModalTab = "upload" | "youtube" | "twitch" | "vimeo";
 
 export const useReelUpload = () => {
@@ -32,14 +32,14 @@ export const useReelUpload = () => {
     setIsUploading(true);
     
     // Update global mood based on selected mood
-    setGlobalMood(formState.mood);
+    setGlobalMood(formState.mood as any);
     
     // Simulate upload progress
     const interval = simulateUploadProgress(setUploadProgress);
 
     try {
       // Process video source
-      const { thumbnailUrl, videoSrc } = await processVideoSource(
+      const { thumbnailUrl, videoSrc, videoId } = await processVideoSource(
         formState.videoFile, 
         formState.videoUrl, 
         activeTab
@@ -55,7 +55,8 @@ export const useReelUpload = () => {
         formState.description,
         formState.tags,
         formState.mood,
-        user
+        user,
+        videoId
       );
       
       // Complete the upload
@@ -79,6 +80,9 @@ export const useReelUpload = () => {
         formState.resetForm();
         setIsUploading(false);
         setUploadProgress(0);
+        
+        // Dispatch custom event to notify listeners about new reel
+        window.dispatchEvent(new CustomEvent('reel-created', { detail: { reel: newReel } }));
         
         // Navigate to the reel page after a small delay
         setTimeout(() => {

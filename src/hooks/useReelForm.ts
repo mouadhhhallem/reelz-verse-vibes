@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { ReelMood } from "./useReelUpload";
+import { ReelMood } from "@/types";
 
 /**
  * Hook for managing reel form state
@@ -12,6 +12,8 @@ export const useReelForm = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mood, setMood] = useState<ReelMood>("energetic");
+  const [clipStart, setClipStart] = useState<number>(0);
+  const [clipDuration, setClipDuration] = useState<number | null>(null);
   
   const resetForm = () => {
     setVideoFile(null);
@@ -20,6 +22,8 @@ export const useReelForm = () => {
     setTitle("");
     setDescription("");
     setMood("energetic");
+    setClipStart(0);
+    setClipDuration(null);
   };
   
   return {
@@ -35,7 +39,10 @@ export const useReelForm = () => {
     setDescription,
     mood,
     setMood,
+    clipStart,
+    setClipStart,
+    clipDuration,
+    setClipDuration,
     resetForm
   };
 };
-

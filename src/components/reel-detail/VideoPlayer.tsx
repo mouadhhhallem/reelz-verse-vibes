@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useVideoPlayback } from '@/hooks/useVideoPlayback';
 import { Button } from '@/components/ui/button';
@@ -33,31 +34,56 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     volume,
     duration,
     currentTime,
+    hasError,
     seekTo,
     changeVolume,
-    preloadNextVideo
+    preloadNextVideo,
+    setHasError
   } = useVideoPlayback(0.3);
 
   const [showControls, setShowControls] = useState(true);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-  const [actualVideoSrc, setActualVideoSrc] = useState<string>(videoUrl);
+  const [actualVideoSrc, setActualVideoSrc] = useState<string>("");
   const [error, setError] = useState<boolean>(false);
+  const [loadAttempts, setLoadAttempts] = useState(0);
 
   // Get the actual video source for local videos
   useEffect(() => {
-    if (!isYouTube && (videoUrl.startsWith('local:') || videoUrl.includes('videoId'))) {
-      try {
-        const src = getActualVideoSource(videoUrl);
-        setActualVideoSrc(src);
-        setError(!src);
-      } catch (err) {
-        console.error("Error getting video source:", err);
+    const loadVideo = async () => {
+      console.log("Loading video from URL:", videoUrl);
+      
+      if (!videoUrl) {
+        console.error("No video URL provided");
         setError(true);
+        setHasError(true);
+        return;
       }
-    } else {
-      setActualVideoSrc(videoUrl);
-    }
-  }, [videoUrl, isYouTube]);
+      
+      if (!isYouTube && (videoUrl.startsWith('local:') || videoUrl.includes('videoId'))) {
+        try {
+          console.log("Getting local video source");
+          const src = getActualVideoSource(videoUrl);
+          console.log("Local video source obtained:", src ? "Success" : "Failed");
+          
+          if (!src) {
+            setError(true);
+            setHasError(true);
+          } else {
+            setActualVideoSrc(src);
+            setError(false);
+          }
+        } catch (err) {
+          console.error("Error getting video source:", err);
+          setError(true);
+          setHasError(true);
+        }
+      } else {
+        setActualVideoSrc(videoUrl);
+      }
+    };
+    
+    loadVideo();
+  }, [videoUrl, isYouTube, loadAttempts, setHasError]);
 
   // Preload next video when component mounts
   React.useEffect(() => {
@@ -98,6 +124,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const handleVideoError = () => {
     console.error("Error loading video:", videoUrl);
     setError(true);
+    
+    // Try reloading once
+    if (loadAttempts === 0 && videoUrl.startsWith('local:')) {
+      console.log("Attempting to reload local video");
+      setLoadAttempts(1);
+    }
+  };
+
+  const handleRetry = () => {
+    setError(false);
+    setHasError(false);
+    setLoadAttempts(prev => prev + 1);
   };
 
   return (
@@ -120,9 +158,16 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <div className="flex flex-col items-center justify-center h-full bg-black/30 backdrop-blur-sm">
           <div className="text-6xl mb-6">😕</div>
           <p className="text-white text-xl mb-4 text-center">Unable to load video</p>
-          <p className="text-white/70 text-center max-w-md">
+          <p className="text-white/70 text-center max-w-md mb-6">
             The video might be unavailable or in an unsupported format.
           </p>
+          <Button 
+            variant="outline" 
+            className="border-white/20 text-white hover:bg-white/20"
+            onClick={handleRetry}
+          >
+            Try Again
+          </Button>
         </div>
       ) : (
         <video

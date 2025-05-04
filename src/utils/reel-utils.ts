@@ -1,6 +1,8 @@
+
 import { toast } from "sonner";
 import { generateVideoThumbnail } from "@/lib/video-utils";
-import { ModalTab, ReelMood } from "@/hooks/useReelUpload";
+import { ModalTab } from "@/hooks/useReelUpload";
+import { ReelMood } from "@/types";
 import { nanoid } from "nanoid";
 
 // Storage key for videos in localStorage
@@ -217,10 +219,33 @@ export const validateReelForm = (videoFile: File | null, videoUrl: string): bool
  * Get the actual video source URL (handles local storage videos)
  */
 export const getActualVideoSource = (videoUrl: string): string => {
+  // Add debug logs to trace the issue
+  console.log("Getting actual video source for:", videoUrl);
+  
+  if (!videoUrl) {
+    console.error("Empty video URL provided");
+    return '';
+  }
+  
   if (videoUrl.startsWith('local:')) {
     const videoId = videoUrl.split(':')[1];
+    console.log("Video ID extracted:", videoId);
+    
+    if (!videoId) {
+      console.error("Invalid local video URL format");
+      return '';
+    }
+    
     const videoData = getVideoFromStorage(videoId);
-    return videoData || '';
+    
+    if (!videoData) {
+      console.error(`Video data not found for ID: ${videoId}`);
+      return '';
+    }
+    
+    console.log("Video data retrieved successfully");
+    return videoData;
   }
+  
   return videoUrl;
 };

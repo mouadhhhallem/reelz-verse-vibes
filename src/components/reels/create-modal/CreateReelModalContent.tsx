@@ -8,6 +8,7 @@ import { ClipControls } from "./ClipControls";
 import { ReelForm } from "./ReelForm";
 import { UploadProgress } from "./UploadProgress";
 import { SubmitButton } from "./SubmitButton";
+import { ReelMood } from "@/types";
 
 export type ModalTab = "upload" | "youtube" | "twitch" | "vimeo";
 
@@ -24,8 +25,8 @@ interface CreateReelModalContentProps {
   onDescriptionChange: (value: string) => void;
   tags: string[];
   onTagsChange: (tags: string[]) => void;
-  mood: "energetic" | "calm" | "happy" | "sad" | "neutral";
-  onMoodChange: (mood: "energetic" | "calm" | "happy" | "sad" | "neutral") => void;
+  mood: ReelMood;
+  onMoodChange: (mood: ReelMood) => void;
   isUploading: boolean;
   uploadProgress: number;
   onSubmit: () => void;
@@ -118,8 +119,12 @@ export const CreateReelModalContent: React.FC<CreateReelModalContentProps> = ({
               {videoUrl && <VideoPreview url={videoUrl} type={activeTab} />}
             </div>
             
-            {videoUrl && activeTab !== 'upload' && (
-              <ClipControls url={videoUrl} type={activeTab} />
+            {/* Show clip controls for both uploaded videos and external links */}
+            {(videoFile || videoUrl) && (
+              <ClipControls 
+                url={videoFile ? URL.createObjectURL(videoFile) : videoUrl} 
+                type={activeTab} 
+              />
             )}
           </div>
           

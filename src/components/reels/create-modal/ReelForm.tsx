@@ -1,21 +1,22 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { X } from 'lucide-react';
+import { ReelMood } from '@/types';
+import { getAllMoods, getMoodGradient, getMoodEmoji } from '@/utils/mood-utils';
 
-export interface ReelFormProps {
+interface ReelFormProps {
   title: string;
   onTitleChange: (value: string) => void;
   description: string;
   onDescriptionChange: (value: string) => void;
   tags: string[];
   onTagsChange: (tags: string[]) => void;
-  mood: "energetic" | "calm" | "happy" | "sad" | "neutral";
-  onMoodChange: (mood: "energetic" | "calm" | "happy" | "sad" | "neutral") => void;
+  mood: ReelMood;
+  onMoodChange: (mood: ReelMood) => void;
 }
 
 export const ReelForm: React.FC<ReelFormProps> = ({
@@ -26,115 +27,109 @@ export const ReelForm: React.FC<ReelFormProps> = ({
   tags,
   onTagsChange,
   mood,
-  onMoodChange
+  onMoodChange,
 }) => {
-  const [tagInput, setTagInput] = React.useState("");
-
-  const handleAddTag = () => {
-    if (!tagInput.trim() || tags.includes(tagInput.trim())) return;
-    onTagsChange([...tags, tagInput.trim()]);
-    setTagInput("");
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    onTagsChange(tags.filter(t => t !== tag));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+  const [tagInput, setTagInput] = React.useState('');
+  
+  const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      handleAddTag();
+      const newTag = tagInput.trim().replace(/,/g, '');
+      
+      if (newTag && !tags.includes(newTag)) {
+        onTagsChange([...tags, newTag]);
+      }
+      
+      setTagInput('');
     }
   };
-
-  const moodOptions: { value: "energetic" | "calm" | "happy" | "sad" | "neutral"; label: string; color: string }[] = [
-    { value: "energetic", label: "Energetic", color: "from-orange-500 to-red-500" },
-    { value: "calm", label: "Calm", color: "from-blue-400 to-teal-500" },
-    { value: "happy", label: "Happy", color: "from-yellow-400 to-amber-500" },
-    { value: "sad", label: "Sad", color: "from-indigo-500 to-purple-600" },
-    { value: "neutral", label: "Neutral", color: "from-gray-500 to-gray-700" }
-  ];
+  
+  const removeTag = (tagToRemove: string) => {
+    onTagsChange(tags.filter(tag => tag !== tagToRemove));
+  };
+  
+  const availableMoods = getAllMoods();
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="space-y-6">
+      <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input 
-          id="title"
-          placeholder="Add a title for your reel"
+          id="title" 
+          placeholder="Give your reel a catchy title" 
           value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          className="mt-1.5 bg-white/5"
+          onChange={e => onTitleChange(e.target.value)}
         />
       </div>
-
-      <div>
+      
+      <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <Textarea 
-          id="description"
-          placeholder="Add a description for your reel"
+          id="description" 
+          placeholder="Describe what's in your reel" 
+          className="resize-none h-28"
           value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          className="mt-1.5 min-h-20 bg-white/5"
+          onChange={e => onDescriptionChange(e.target.value)}
         />
       </div>
-
-      <div>
-        <Label htmlFor="tags">Tags</Label>
-        <div className="flex gap-2 mt-1.5">
-          <Input 
-            id="tags"
-            placeholder="Add tags"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            className="flex-1 bg-white/5"
-          />
-          <Button 
-            onClick={handleAddTag} 
-            type="button" 
-            variant="outline"
-            disabled={!tagInput.trim()}
-          >
-            Add
-          </Button>
-        </div>
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
-            {tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="flex items-center gap-1 bg-white/10">
-                <span>#{tag}</span>
-                <button 
-                  onClick={() => handleRemoveTag(tag)} 
-                  type="button"
-                  aria-label={`Remove ${tag} tag`}
-                  className="ml-1 hover:bg-white/10 rounded-full p-0.5"
-                >
-                  <X size={12} />
-                </button>
-              </Badge>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <Label>Mood</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-1.5">
-          {moodOptions.map((option) => (
-            <Button
-              key={option.value}
+      
+      <div className="space-y-2">
+        <Label htmlFor="mood">Mood</Label>
+        <div className="grid grid-cols-4 gap-2">
+          {availableMoods.map(moodItem => (
+            <button
+              key={moodItem.id}
               type="button"
-              className={`h-full relative bg-gradient-to-br ${option.color} hover:shadow-lg transition-shadow ${
-                mood === option.value ? 'ring-2 ring-white' : ''
+              onClick={() => onMoodChange(moodItem.id as ReelMood)}
+              className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all ${
+                mood === moodItem.id
+                  ? 'border-primary bg-primary/10 shadow-md transform scale-105'
+                  : 'border-border bg-card/50 hover:bg-card/80'
               }`}
-              onClick={() => onMoodChange(option.value)}
             >
-              {option.label}
-            </Button>
+              <span className="text-2xl mb-1">{moodItem.emoji}</span>
+              <span className="text-xs font-medium">{moodItem.name}</span>
+            </button>
           ))}
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="tags">Tags</Label>
+        <Input
+          id="tags"
+          placeholder="Add tags and press Enter"
+          value={tagInput}
+          onChange={e => setTagInput(e.target.value)}
+          onKeyDown={handleTagInput}
+        />
+        
+        <div className="flex flex-wrap gap-2 mt-2">
+          {tags.map(tag => (
+            <Badge 
+              key={tag} 
+              variant="secondary"
+              className="flex items-center gap-1 px-2 py-1"
+            >
+              {tag}
+              <button 
+                onClick={() => removeTag(tag)}
+                className="rounded-full p-0.5 hover:bg-destructive/20"
+              >
+                <X size={12} />
+                <span className="sr-only">Remove tag</span>
+              </button>
+            </Badge>
+          ))}
+          {!tags.length && (
+            <span className="text-xs text-muted-foreground">
+              No tags added yet. Tags help others discover your reel.
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
 };
+
+export default ReelForm;
