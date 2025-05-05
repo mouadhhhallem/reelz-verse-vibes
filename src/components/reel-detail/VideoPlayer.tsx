@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useVideoPlayback } from '@/hooks/useVideoPlayback';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, Loader } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react';
 import { formatDuration } from '@/lib/video-utils';
 import { getActualVideoSource } from '@/utils/reel-utils';
+import { toast } from 'sonner';
 
 interface VideoPlayerProps {
   videoUrl: string;
@@ -46,67 +47,93 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [actualVideoSrc, setActualVideoSrc] = useState<string>("");
   const [error, setError] = useState<boolean>(false);
   const [loadAttempts, setLoadAttempts] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   // Get the actual video source for local videos
   useEffect(() => {
     const loadVideo = async () => {
       console.log("Loading video from URL:", videoUrl);
+      setIsRetrying(true);
       
       if (!videoUrl) {
-        console.error("No video URL provided");
+        console.error("Empty video URL provided");
         setError(true);
         setHasError(true);
+        setIsRetrying(false);
         return;
       }
       
-      // Check if it's a local video (stored in localStorage)
-      if (!isYouTube && videoUrl.startsWith('local:')) {
-        try {
+      try {
+        // Check if it's a local video (stored in localStorage)
+        if (!isYouTube && videoUrl.startsWith('local:')) {
           console.log("Getting local video source");
           const videoId = videoUrl.split(':')[1];
-          console.log("Video ID for local video:", videoId);
+          console.log("Video ID extracted:", videoId);
           
           if (!videoId) {
             console.error("Invalid local video URL format");
             setError(true);
             setHasError(true);
+            setIsRetrying(false);
             return;
           }
           
-          // Get video data from localStorage
-          const storedVideos = localStorage.getItem('reelz_videos');
-          if (!storedVideos) {
-            console.error("No videos found in localStorage");
-            setError(true);
-            setHasError(true);
-            return;
-          }
+          // Get video data with retries
+          let videoData = null;
+          let attempts = 0;
+          const maxAttempts = 3;
           
-          const videos = JSON.parse(storedVideos);
-          const videoData = videos[videoId]?.data;
+          while (!videoData && attempts < maxAttempts) {
+            attempts++;
+            try {
+              videoData = localStorage.getItem(`reelz_video_${videoId}`);
+              
+              if (!videoData) {
+                // Try getting it from the consolidated storage
+                const storedVideos = localStorage.getItem('reelz_videos');
+                if (storedVideos) {
+                  const videos = JSON.parse(storedVideos);
+                  videoData = videos[videoId]?.data;
+                }
+              }
+              
+              if (!videoData) {
+                console.log(`Attempt ${attempts}: Video data not found, retrying...`);
+                // Short delay before retry
+                await new Promise(resolve => setTimeout(resolve, 300));
+              }
+            } catch (err) {
+              console.error(`Attempt ${attempts}: Error retrieving video data:`, err);
+              // Longer delay on error
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+          }
           
           if (!videoData) {
-            console.error(`Video data not found for ID: ${videoId}`);
+            console.error(`Video data not found for ID: ${videoId} after ${maxAttempts} attempts`);
             setError(true);
             setHasError(true);
+            setIsRetrying(false);
             return;
           }
           
           console.log("Local video data retrieved successfully");
           setActualVideoSrc(videoData);
           setError(false);
-        } catch (err) {
-          console.error("Error getting local video source:", err);
-          setError(true);
-          setHasError(true);
+        } else if (videoUrl.indexOf('data:') === 0) {
+          // It's already a data URL
+          setActualVideoSrc(videoUrl);
+          setError(false);
+        } else {
+          // Regular URL
+          setActualVideoSrc(videoUrl);
         }
-      } else if (videoUrl.indexOf('data:') === 0) {
-        // It's already a data URL
-        setActualVideoSrc(videoUrl);
-        setError(false);
-      } else {
-        // Regular URL
-        setActualVideoSrc(videoUrl);
+      } catch (err) {
+        console.error("Error processing video source:", err);
+        setError(true);
+        setHasError(true);
+      } finally {
+        setIsRetrying(false);
       }
     };
     
@@ -164,6 +191,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setError(false);
     setHasError(false);
     setLoadAttempts(prev => prev + 1);
+    
+    // Show retry toast
+    toast.info("Retrying video playback...", {
+      duration: 2000
+    });
   };
 
   return (
@@ -193,8 +225,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             variant="outline" 
             className="border-white/20 text-white hover:bg-white/20"
             onClick={handleRetry}
+            disabled={isRetrying}
           >
-            Try Again
+            {isRetrying ? (
+              <>
+                <RefreshCw size={18} className="mr-2 animate-spin" />
+                Retrying...
+              </>
+            ) : (
+              <>
+                <RefreshCw size={18} className="mr-2" />
+                Try Again
+              </>
+            )}
           </Button>
         </div>
       ) : (

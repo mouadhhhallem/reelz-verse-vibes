@@ -28,7 +28,7 @@ const Home: React.FC = () => {
   });
   
   // Fetch reels
-  const { data: reels, isLoading, error } = useQuery({
+  const { data: reels, isLoading, error, refetch } = useQuery({
     queryKey: ['reels', currentTab],
     queryFn: () => apiClient.getReels(1, 10, currentTab === 'following' ? 'following' : 'for-you'),
   });
@@ -45,6 +45,19 @@ const Home: React.FC = () => {
     queryKey: ['favorites'],
     queryFn: () => apiClient.getFavorites(),
   });
+  
+  // Listen for new reels being created
+  useEffect(() => {
+    const handleReelCreated = () => {
+      console.log('New reel created, refreshing data');
+      refetch();
+    };
+    
+    window.addEventListener('reel-created', handleReelCreated);
+    return () => {
+      window.removeEventListener('reel-created', handleReelCreated);
+    };
+  }, [refetch]);
   
   // Create a Set of favorite reel IDs for O(1) lookup
   const favoriteIds = new Set((favorites || []).map(reel => reel.id));

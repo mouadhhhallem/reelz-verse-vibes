@@ -1,18 +1,20 @@
 
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileUploadArea } from "./FileUploadArea";
-import { UrlInputField } from "./UrlInputField";
-import { VideoPreview } from "./VideoPreview";
-import { ClipControls } from "./ClipControls";
-import { ReelForm } from "./ReelForm";
-import { UploadProgress } from "./UploadProgress";
-import { SubmitButton } from "./SubmitButton";
-import { ReelMood } from "@/types";
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ModalHeader } from './ModalHeader';
+import { FileUploadArea } from './FileUploadArea';
+import { UrlInputField } from './UrlInputField';
+import { VideoPreview } from './VideoPreview';
+import { ReelForm } from './ReelForm';
+import { SubmitButton } from './SubmitButton';
+import { UploadProgress } from './UploadProgress';
+import { ModalTab } from '@/hooks/useReelUpload';
+import { ReelMood } from '@/types';
+import { ClipControls } from './ClipControls';
 
-export type ModalTab = "upload" | "youtube" | "twitch" | "vimeo";
-
-interface CreateReelModalContentProps {
+export interface CreateReelModalContentProps {
   activeTab: ModalTab;
   onTabChange: (value: ModalTab) => void;
   videoFile: File | null;
@@ -24,9 +26,9 @@ interface CreateReelModalContentProps {
   description: string;
   onDescriptionChange: (value: string) => void;
   tags: string[];
-  onTagsChange: (tags: string[]) => void;
+  onTagsChange: (value: string[]) => void;
   mood: ReelMood;
-  onMoodChange: (mood: ReelMood) => void;
+  onMoodChange: (value: ReelMood) => void;
   clipStart: number;
   onClipStartChange: (value: number) => void;
   clipDuration: number | null;
@@ -59,114 +61,139 @@ export const CreateReelModalContent: React.FC<CreateReelModalContentProps> = ({
   isUploading,
   uploadProgress,
   onSubmit,
-  onCancel,
+  onCancel
 }) => {
-  const handleTabChange = (value: string) => {
-    onTabChange(value as ModalTab);
+  const [step, setStep] = useState<1 | 2>(1);
+  
+  const handleNext = () => {
+    if (step === 1 && (videoFile || videoUrl)) {
+      setStep(2);
+    }
   };
-
+  
+  const handleBack = () => {
+    if (step === 2) {
+      setStep(1);
+    }
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit();
+  };
+  
   return (
-    <div className="p-6 space-y-6">
-      <Tabs
-        defaultValue={activeTab}
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="w-full"
-      >
-        <TabsList className="grid grid-cols-4 w-full bg-white/5 backdrop-blur-md">
-          <TabsTrigger value="upload" className="data-[state=active]:bg-primary/20">
-            Upload Video
-          </TabsTrigger>
-          <TabsTrigger value="youtube" className="data-[state=active]:bg-primary/20">
-            YouTube Link
-          </TabsTrigger>
-          <TabsTrigger value="twitch" className="data-[state=active]:bg-primary/20">
-            Twitch Clip
-          </TabsTrigger>
-          <TabsTrigger value="vimeo" className="data-[state=active]:bg-primary/20">
-            Vimeo Video
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <TabsContent value="upload" className="m-0">
-              <FileUploadArea onChange={onVideoFileChange} file={videoFile} />
-            </TabsContent>
-
-            <TabsContent value="youtube" className="m-0">
-              <UrlInputField 
-                value={videoUrl}
-                onChange={onVideoUrlChange}
-                placeholder="Paste YouTube video URL"
-                type="youtube"
-              />
-            </TabsContent>
+    <div className="flex flex-col h-full">
+      <ModalHeader title="Create new Reel" onCancel={onCancel} />
+      
+      {isUploading ? (
+        <UploadProgress progress={uploadProgress} />
+      ) : (
+        <form className="flex flex-col h-full" onSubmit={handleSubmit}>
+          <ScrollArea className="flex-1 px-6">
+            {step === 1 && (
+              <>
+                <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as ModalTab)} className="w-full">
+                  <TabsList className="grid grid-cols-3 mb-6">
+                    <TabsTrigger value="upload">Upload Video</TabsTrigger>
+                    <TabsTrigger value="youtube">YouTube</TabsTrigger>
+                    <TabsTrigger value="twitch">Twitch</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="space-y-6">
+                    <FileUploadArea 
+                      onChange={onVideoFileChange}
+                      file={videoFile}
+                    />
+                    
+                    {videoFile && (
+                      <VideoPreview file={videoFile} />
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="youtube" className="space-y-6">
+                    <UrlInputField 
+                      value={videoUrl} 
+                      onChange={onVideoUrlChange}
+                      placeholder="Enter YouTube URL (e.g., https://www.youtube.com/watch?v=VIDEO_ID)"
+                    />
+                    
+                    {videoUrl && (
+                      <VideoPreview url={videoUrl} type="youtube" />
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="twitch" className="space-y-6">
+                    <UrlInputField 
+                      value={videoUrl} 
+                      onChange={onVideoUrlChange}
+                      placeholder="Enter Twitch clip URL"
+                    />
+                    
+                    {videoUrl && (
+                      <VideoPreview url={videoUrl} type="twitch" />
+                    )}
+                  </TabsContent>
+                </Tabs>
+                
+                {/* Video Clip Controls */}
+                {(videoFile || videoUrl) && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-medium mb-4">Customize Clip</h3>
+                    <ClipControls 
+                      url={videoUrl} 
+                      type={activeTab}
+                      clipStart={clipStart}
+                      onClipStartChange={onClipStartChange}
+                      clipDuration={clipDuration}
+                      onClipDurationChange={onClipDurationChange}
+                    />
+                  </div>
+                )}
+              </>
+            )}
             
-            <TabsContent value="twitch" className="m-0">
-              <UrlInputField 
-                value={videoUrl}
-                onChange={onVideoUrlChange}
-                placeholder="Paste Twitch clip URL"
-                type="twitch"
-              />
-            </TabsContent>
-            
-            <TabsContent value="vimeo" className="m-0">
-              <UrlInputField 
-                value={videoUrl}
-                onChange={onVideoUrlChange}
-                placeholder="Paste Vimeo video URL"
-                type="vimeo"
-              />
-            </TabsContent>
-            
-            {/* Preview container with fixed height */}
-            <div className="h-52 overflow-hidden">
-              {videoFile && <VideoPreview file={videoFile} />}
-              {videoUrl && <VideoPreview url={videoUrl} type={activeTab} />}
-            </div>
-            
-            {/* Show clip controls for both uploaded videos and external links */}
-            {(videoFile || videoUrl) && (
-              <ClipControls 
-                url={videoFile ? URL.createObjectURL(videoFile) : videoUrl} 
-                type={activeTab}
-                clipStart={clipStart}
-                onClipStartChange={onClipStartChange}
-                clipDuration={clipDuration}
-                onClipDurationChange={onClipDurationChange} 
+            {step === 2 && (
+              <ReelForm 
+                title={title}
+                onTitleChange={onTitleChange}
+                description={description}
+                onDescriptionChange={onDescriptionChange}
+                tags={tags}
+                onTagsChange={onTagsChange}
+                mood={mood}
+                onMoodChange={onMoodChange}
               />
             )}
-          </div>
+          </ScrollArea>
           
-          <div className="space-y-6">
-            <ReelForm
-              title={title}
-              onTitleChange={onTitleChange}
-              description={description}
-              onDescriptionChange={onDescriptionChange}
-              tags={tags}
-              onTagsChange={onTagsChange}
-              mood={mood}
-              onMoodChange={onMoodChange}
-            />
+          <div className="p-6 border-t">
+            <div className="flex justify-between">
+              {step === 2 ? (
+                <>
+                  <Button type="button" variant="outline" onClick={handleBack}>
+                    Back
+                  </Button>
+                  <SubmitButton type="submit" />
+                </>
+              ) : (
+                <>
+                  <Button type="button" variant="outline" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={handleNext}
+                    disabled={!videoFile && !videoUrl}
+                  >
+                    Next
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-
-        <UploadProgress 
-          isUploading={isUploading}
-          activeTab={activeTab}
-          uploadProgress={uploadProgress}
-        />
-
-        <SubmitButton 
-          isUploading={isUploading}
-          disabled={(!videoFile && !videoUrl)}
-          onSubmit={onSubmit}
-          onCancel={onCancel}
-        />
-      </Tabs>
+        </form>
+      )}
     </div>
   );
 };

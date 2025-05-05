@@ -30,7 +30,15 @@ export const saveVideoToStorage = async (videoFile: File): Promise<string> => {
           createdAt: new Date().toISOString()
         };
         
+        // Save to consolidated storage
         localStorage.setItem(VIDEO_STORAGE_KEY, JSON.stringify(videos));
+        
+        // Also save individual video for quick access
+        try {
+          localStorage.setItem(`reelz_video_${videoId}`, reader.result as string);
+        } catch (storageError) {
+          console.warn("Could not store individual video entry, using consolidated only:", storageError);
+        }
         
         // Dispatch event to notify components that a new video was added
         window.dispatchEvent(new CustomEvent('reel-added', { detail: { videoId } }));
@@ -52,8 +60,17 @@ export const saveVideoToStorage = async (videoFile: File): Promise<string> => {
  */
 export const getVideoFromStorage = (videoId: string): string | null => {
   try {
-    const videos = getStoredVideos();
-    return videos[videoId]?.data || null;
+    // First try direct access
+    let videoData = localStorage.getItem(`reelz_video_${videoId}`);
+    
+    // If not found, try the consolidated storage
+    if (!videoData) {
+      console.log("Video not found in direct storage, checking consolidated storage");
+      const videos = getStoredVideos();
+      videoData = videos[videoId]?.data || null;
+    }
+    
+    return videoData;
   } catch (error) {
     console.error('Error retrieving video:', error);
     return null;
@@ -238,7 +255,22 @@ export const getActualVideoSource = (videoUrl: string): string => {
       return '';
     }
     
-    const videoData = getVideoFromStorage(videoId);
+    // Try direct access first
+    let videoData = localStorage.getItem(`reelz_video_${videoId}`);
+    
+    // If not found, try the consolidated storage
+    if (!videoData) {
+      console.log("Video not found in direct storage, checking consolidated storage");
+      const storedVideos = localStorage.getItem('reelz_videos');
+      if (storedVideos) {
+        try {
+          const videos = JSON.parse(storedVideos);
+          videoData = videos[videoId]?.data || null;
+        } catch (error) {
+          console.error("Error parsing stored videos:", error);
+        }
+      }
+    }
     
     if (!videoData) {
       console.error(`Video data not found for ID: ${videoId}`);

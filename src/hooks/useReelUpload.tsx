@@ -16,6 +16,9 @@ export const useReelUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   
   const formState = useReelForm();
+  const [clipStart, setClipStart] = useState(0);
+  const [clipDuration, setClipDuration] = useState<number | null>(30);
+  
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -60,12 +63,12 @@ export const useReelUpload = () => {
       );
       
       // Add clip start and duration if they exist
-      if (formState.clipStart > 0) {
-        newReel.clipStart = formState.clipStart;
+      if (clipStart > 0) {
+        newReel.clipStart = clipStart;
       }
       
-      if (formState.clipDuration !== null) {
-        newReel.clipDuration = formState.clipDuration;
+      if (clipDuration !== null) {
+        newReel.clipDuration = clipDuration;
       }
       
       // Complete the upload
@@ -89,6 +92,8 @@ export const useReelUpload = () => {
         formState.resetForm();
         setIsUploading(false);
         setUploadProgress(0);
+        setClipStart(0);
+        setClipDuration(30);
         
         // Dispatch custom event to notify listeners about new reel
         window.dispatchEvent(new CustomEvent('reel-created', { detail: { reel: newReel } }));
@@ -110,6 +115,10 @@ export const useReelUpload = () => {
 
   return {
     ...formState,
+    clipStart,
+    setClipStart,
+    clipDuration,
+    setClipDuration,
     isUploading,
     uploadProgress,
     handleSubmit

@@ -14,6 +14,8 @@ export const useVideoPlayback = (threshold = 0.7) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [hasError, setHasError] = useState(false);
   const preloadTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const retryCountRef = useRef<number>(0);
+  const maxRetries = 3;
 
   // Preload the next video when current video is 70% complete
   const preloadNextVideo = useCallback((nextVideoSrc?: string) => {
@@ -48,6 +50,32 @@ export const useVideoPlayback = (threshold = 0.7) => {
     };
   }, []);
 
+  // Auto-retry loading on error for video elements
+  const retryVideoLoad = useCallback(() => {
+    const currentVideo = videoRef.current;
+    
+    if (currentVideo && currentVideo.tagName === 'VIDEO' && hasError) {
+      if (retryCountRef.current < maxRetries) {
+        retryCountRef.current++;
+        console.log(`Retry attempt ${retryCountRef.current} of ${maxRetries}`);
+        
+        const videoElement = currentVideo as HTMLVideoElement;
+        
+        // Force reload
+        if (videoElement.src) {
+          const currentSrc = videoElement.src;
+          videoElement.src = '';
+          
+          setTimeout(() => {
+            videoElement.src = currentSrc;
+            videoElement.load();
+            setHasError(false);
+          }, 1000);
+        }
+      }
+    }
+  }, [hasError]);
+
   useEffect(() => {
     const currentVideo = videoRef.current;
     const currentContainer = containerRef.current;
@@ -68,6 +96,11 @@ export const useVideoPlayback = (threshold = 0.7) => {
               videoElement.play().catch(error => {
                 console.error('Autoplay failed:', error);
                 setHasError(true);
+                
+                // Consider auto-retry
+                if (retryCountRef.current < maxRetries) {
+                  retryVideoLoad();
+                }
               });
               setIsPlaying(true);
             }
@@ -99,6 +132,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
       const handleLoadedMetadata = () => {
         setDuration(videoElement.duration);
         setHasError(false); // Reset error state when video loads successfully
+        retryCountRef.current = 0; // Reset retry counter on successful load
       };
       
       const handleWaiting = () => {
@@ -108,12 +142,18 @@ export const useVideoPlayback = (threshold = 0.7) => {
       const handlePlaying = () => {
         setIsBuffering(false);
         setHasError(false); // Reset error state when video starts playing
+        retryCountRef.current = 0; // Reset retry counter on successful playback
       };
       
       const handleError = (e: Event) => {
         console.error('Video playback error:', e);
         setHasError(true);
         setIsPlaying(false);
+        
+        // Auto-retry on error, but limit retries
+        if (retryCountRef.current < maxRetries) {
+          retryVideoLoad();
+        }
       };
       
       videoElement.addEventListener('timeupdate', updateProgress);
@@ -152,7 +192,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
         observer.unobserve(currentContainer);
       }
     };
-  }, [threshold, preloadNextVideo, hasError]);
+  }, [threshold, preloadNextVideo, hasError, retryVideoLoad]);
 
   const togglePlayback = () => {
     const currentVideo = videoRef.current;
@@ -165,6 +205,11 @@ export const useVideoPlayback = (threshold = 0.7) => {
       videoElement.play().catch(error => {
         console.error('Play failed:', error);
         setHasError(true);
+        
+        // Auto-retry
+        if (retryCountRef.current < maxRetries) {
+          retryVideoLoad();
+        }
       });
       setIsPlaying(true);
     } else {
@@ -237,6 +282,7 @@ export const useVideoPlayback = (threshold = 0.7) => {
     seekTo,
     changeVolume,
     preloadNextVideo,
-    setHasError
+    setHasError,
+    retryVideoLoad
   };
 };
