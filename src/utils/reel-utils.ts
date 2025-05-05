@@ -153,6 +153,8 @@ export const createReelObject = (
     views: 0,
     comments: 0,
     createdAt: new Date().toISOString(),
+    clipStart: 0, // Default clip start
+    clipDuration: null, // Default clip duration
     userId: user.id,
     user: {
       name: user.name || user.username,

@@ -33,6 +33,10 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
     setDescription,
     mood,
     setMood,
+    clipStart,
+    setClipStart,
+    clipDuration,
+    setClipDuration,
     handleSubmit,
     resetForm
   } = useReelUpload();
@@ -92,6 +96,10 @@ export const CreateReelModal: React.FC<CreateReelModalProps> = ({
                 onTagsChange={setTags}
                 mood={mood}
                 onMoodChange={setMood}
+                clipStart={clipStart}
+                onClipStartChange={setClipStart}
+                clipDuration={clipDuration}
+                onClipDurationChange={setClipDuration}
                 isUploading={isUploading}
                 uploadProgress={uploadProgress}
                 onSubmit={handleFormSubmit}
